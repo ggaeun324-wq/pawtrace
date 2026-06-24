@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — Every Paw Has a Story</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --peach-deep:#E8B295; --mint:#CCE7DF; --mint-deep:#9BCFC0;
+    --coral:#E8836A; --coral-deep:#D96E55; --lilac:#DED3F0; --sun:#F2DEAE;
+    --shadow:0 12px 28px rgba(200,140,110,.14); --shadow-sm:0 6px 15px rgba(150,120,100,.10);
+    --r:28px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:-.5px}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .navlinks{display:flex;gap:8px}
+  .navlinks a{color:var(--ink-soft);text-decoration:none;font-weight:600;font-size:15px;
+       padding:9px 16px;border-radius:999px;transition:.2s}
+  .navlinks a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .navlinks a.active{background:var(--ink);color:#fff}
+  .tagline{text-align:center;margin:18px 0 30px}
+  .tagline h1{font-size:30px;font-weight:800;letter-spacing:-1px}
+  .tagline p{color:var(--ink-soft);font-weight:600;margin-top:4px}
+  .tagline .heart{color:var(--coral)}
+  .friend-label{display:flex;align-items:center;justify-content:center;gap:8px;
+       font-weight:800;color:var(--coral-deep);margin-bottom:14px;font-size:15px}
+  .friend-label .pill{background:#fff;padding:6px 14px;border-radius:999px;box-shadow:var(--shadow-sm)}
+  .hero{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+       overflow:hidden;display:grid;grid-template-columns:1.05fr 1fr}
+  .hero-photo{position:relative;min-height:420px;background:
+       linear-gradient(135deg,var(--peach) 0%,var(--mint) 100%)}
+  .hero-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .badge{position:absolute;top:18px;left:18px;background:rgba(255,255,255,.92);
+       padding:8px 14px;border-radius:999px;font-weight:700;font-size:13px;
+       display:flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm)}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--mint-deep)}
+  .hero-body{padding:36px 38px;display:flex;flex-direction:column}
+  .hero-body h2{font-size:34px;letter-spacing:-1px}
+  .hero-body .meta{color:var(--ink-soft);font-weight:600;margin-top:2px}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+  .tag{background:var(--sun);color:#8a6d1f;font-weight:700;font-size:13px;padding:7px 13px;border-radius:999px}
+  .tag.mint{background:var(--mint);color:#2f7d68}
+  .tag.lilac{background:var(--lilac);color:#6a4fb0}
+  .story{color:var(--ink-soft);font-size:15.5px}
+  .actions{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:24px}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:16px;
+       padding:15px 20px;border-radius:18px;transition:.18s transform,.18s box-shadow}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--coral),var(--coral-deep));color:#fff;box-shadow:var(--shadow)}
+  .btn-row{display:flex;gap:10px}
+  .btn-ghost{flex:1;background:#F6EBE3;color:var(--coral-deep)}
+  .btn-ghost.mint{background:#E5F1EC;color:#3a8270}
+  section{margin-top:46px}
+  .sec-head{text-align:center;margin-bottom:22px}
+  .sec-head h3{font-size:24px;letter-spacing:-.5px}
+  .sec-head p{color:var(--ink-soft);font-weight:600}
+  .passport{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:30px 26px}
+  .timeline{display:flex;justify-content:space-between;position:relative;gap:6px}
+  .timeline::before{content:"";position:absolute;top:26px;left:6%;right:6%;height:4px;
+       background:linear-gradient(90deg,var(--peach-deep),var(--mint-deep));border-radius:99px;z-index:0}
+  .step{position:relative;z-index:1;text-align:center;flex:1}
+  .step .ic{width:54px;height:54px;border-radius:18px;margin:0 auto 10px;display:grid;place-items:center;
+       font-size:24px;background:#fff;box-shadow:var(--shadow-sm)}
+  .step.done .ic{background:linear-gradient(135deg,var(--mint),var(--mint-deep))}
+  .step.now .ic{background:linear-gradient(135deg,var(--peach),var(--coral));color:#fff}
+  .step.future .ic{opacity:.55}
+  .step b{font-size:14px}
+  .step span{display:block;color:var(--ink-soft);font-size:12px;font-weight:600}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .why{background:var(--card);border-radius:24px;padding:26px;box-shadow:var(--shadow-sm)}
+  .why .ic{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:24px;margin-bottom:14px}
+  .why h4{font-size:18px;margin-bottom:6px}
+  .why p{color:var(--ink-soft);font-size:14.5px}
+  .happy{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .he{background:var(--card);border-radius:22px;overflow:hidden;box-shadow:var(--shadow-sm)}
+  .he .ph{height:120px;background:linear-gradient(135deg,var(--lilac),var(--mint))}
+  .he .ph img{width:100%;height:100%;object-fit:cover}
+  .he .cap{padding:12px 14px}
+  .he .cap b{font-size:14px}
+  .he .cap span{display:block;color:var(--ink-soft);font-size:12px}
+  footer{margin:54px 0 36px;text-align:center;color:var(--ink-soft)}
+  footer .big{font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.5px}
+  .note{margin-top:8px;font-size:12.5px;background:#FFF3EC;display:inline-block;padding:8px 14px;border-radius:999px}
+  @media(max-width:860px){
+    .hero{grid-template-columns:1fr}.cards{grid-template-columns:1fr}
+    .happy{grid-template-columns:repeat(2,1fr)}.hero-photo{min-height:280px}
+    .timeline{overflow-x:auto}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+    <div class="navlinks">
+      <a class="active" href="index.html">오늘의 친구</a>
+      <a href="map.html">보호소 지도</a>
+      <a href="index.html">해피엔딩</a>
+      <a href="guide.html">입양 가이드</a>
+    </div>
+  </nav>
+
+  <div class="tagline">
+    <h1>Every Paw Has a Story.</h1>
+    <p>Every Story Deserves a Home. <span class="heart">♥</span></p>
+  </div>
+
+  <div class="friend-label"><span class="pill">☀️ 오늘의 친구를 만나보세요</span></div>
+
+  <div class="hero">
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=80"
+           alt="오늘의 친구 강아지" onerror="this.style.display='none'"/>
+      <div class="badge"><span class="dot"></span> 입양 가능 · 햇살보호소</div>
+    </div>
+    <div class="hero-body">
+      <h2>봄이</h2>
+      <div class="meta">추정 2살 · 믹스(추정) · 여아 · 중성화 완료</div>
+      <div class="tags">
+        <span class="tag">🌷 사람을 좋아해요</span>
+        <span class="tag mint">🦴 산책을 좋아해요</span>
+        <span class="tag lilac">😌 차분한 편</span>
+      </div>
+      <p class="story">추운 겨울 공원에서 구조된 봄이는 사람 손길을 처음엔 무서워했지만,
+        지금은 누구보다 다정한 친구가 되었어요. 봄이의 이야기를 따라가 보세요.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="passport.html" style="text-decoration:none;text-align:center;display:block">📖 봄이의 이야기 보기</a>
+        <div class="btn-row">
+          <a class="btn btn-ghost" href="map.html" style="text-decoration:none;text-align:center">🏠 보호소 만나기</a>
+          <a class="btn btn-ghost mint" href="guide.html" style="text-decoration:none;text-align:center">📋 입양 가이드</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h3>🐾 Pet Passport</h3>
+      <p>봄이가 지나온 생애의 발자국 — 순위가 아니라 이야기입니다</p>
+    </div>
+    <div class="passport">
+      <div class="timeline">
+        <div class="step done"><div class="ic">🌳</div><b>구조</b><span>1월 · 공원</span></div>
+        <div class="step done"><div class="ic">🏠</div><b>보호소 입소</b><span>1월</span></div>
+        <div class="step done"><div class="ic">🩺</div><b>건강검진</b><span>2월</span></div>
+        <div class="step done"><div class="ic">💉</div><b>예방접종</b><span>2월</span></div>
+        <div class="step now"><div class="ic">💗</div><b>입양 가능</b><span>지금</span></div>
+        <div class="step future"><div class="ic">👨‍👩‍👧</div><b>가족 만남</b><span>곧</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h3>왜 PawTrace인가요?</h3>
+      <p>입양 가능한 강아지를 보여주는 앱이 아니라, <b>믿을 수 있는 이야기</b>를 보여주는 곳</p></div>
+    <div class="cards">
+      <div class="why">
+        <div class="ic" style="background:var(--peach)">📖</div>
+        <h4>생애 타임라인</h4>
+        <p>구조부터 입양 후까지, 강아지의 이야기를 투명하게 연결해요.</p>
+      </div>
+      <div class="why">
+        <div class="ic" style="background:var(--mint)">🔍</div>
+        <h4>투명한 정보</h4>
+        <p>점수나 순위가 아닌, 공공데이터·검증 기반의 사실만 전해요.</p>
+      </div>
+      <div class="why">
+        <div class="ic" style="background:var(--lilac)">🤝</div>
+        <h4>보호소와 함께</h4>
+        <p>기술로 보호소의 일을 덜어주고, 좋은 입양 문화를 만들어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h3>💌 Happy Endings</h3>
+      <p>입양은 끝이 아니라 시작이에요</p></div>
+    <div class="happy">
+      <div class="he"><div class="ph"><img src="https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=400&q=70" onerror="this.style.display='none'"></div><div class="cap"><b>콩이네 가족</b><span>입양 6개월 · 행복해요</span></div></div>
+      <div class="he"><div class="ph"><img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=70" onerror="this.style.display='none'"></div><div class="cap"><b>모카</b><span>첫 산책 기념 📸</span></div></div>
+      <div class="he"><div class="ph"><img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=400&q=70" onerror="this.style.display='none'"></div><div class="cap"><b>두부</b><span>가족이 된 지 1년 🎂</span></div></div>
+      <div class="he"><div class="ph"><img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=400&q=70" onerror="this.style.display='none'"></div><div class="cap"><b>초코</b><span>바닷가 첫 여행 🌊</span></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="big">🐾 PawTrace</div>
+    <p>Every Paw Has a Story. Every Story Deserves a Home.</p>
+    <div class="note">⚖️ PawTrace는 강아지를 평가하거나 순위를 매기지 않습니다. 투명한 정보만 전합니다.</div>
+  </footer>
+</div>
+</body>
+</html>

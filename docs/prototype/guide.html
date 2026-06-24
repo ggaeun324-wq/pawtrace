@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 입양 가이드</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<link href="style.css" rel="stylesheet" />
+<style>
+  .assist{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:30px 28px;max-width:720px;margin:0 auto}
+  .ai-tag{display:inline-flex;align-items:center;gap:6px;background:var(--lilac);color:#6a4fb0;
+    font-weight:700;font-size:13px;padding:6px 13px;border-radius:999px}
+  .q{font-size:20px;font-weight:800;margin:16px 0 6px;letter-spacing:-.5px}
+  .q small{display:block;color:var(--ink-soft);font-size:13.5px;font-weight:600;margin-top:2px}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+  .opt{background:#F8F1EA;border:2px solid transparent;border-radius:18px;padding:16px;cursor:pointer;
+    font-weight:700;transition:.15s;display:flex;align-items:center;gap:10px}
+  .opt:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+  .opt.sel{border-color:var(--coral);background:#fff;box-shadow:var(--shadow-sm)}
+  .opt .e{font-size:22px}
+  .progress{display:flex;gap:6px;margin-bottom:18px}
+  .progress i{height:6px;flex:1;border-radius:99px;background:#EBE3DC}
+  .progress i.on{background:linear-gradient(90deg,var(--peach-deep),var(--coral))}
+  .navrow{display:flex;justify-content:space-between;margin-top:24px}
+
+  .checklist{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  .chk{background:var(--card);border-radius:20px;padding:20px;box-shadow:var(--shadow-sm)}
+  .chk .ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;margin-bottom:10px}
+  .chk h4{font-size:16px}
+  .chk p{color:var(--ink-soft);font-size:14px;margin-top:4px}
+  .disc{margin-top:22px;background:#F6EBE3;border-radius:18px;padding:16px 18px;font-size:14px;color:var(--ink-soft)}
+  @media(max-width:860px){.opts,.checklist{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+    <div class="navlinks">
+      <a href="index.html">오늘의 친구</a>
+      <a href="map.html">보호소 지도</a>
+      <a href="index.html">해피엔딩</a>
+      <a class="active" href="guide.html">입양 가이드</a>
+    </div>
+  </nav>
+
+  <div class="page-head" style="text-align:center">
+    <h1>📋 AI 입양 가이드</h1>
+    <p>AI는 강아지를 <b>대신 골라주지 않아요.</b> 더 좋은 준비를 함께할 뿐이에요.</p>
+  </div>
+
+  <div class="assist">
+    <div class="progress"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+    <span class="ai-tag">🤖 입양 준비 도우미 · 2 / 4</span>
+    <div class="q">하루 중 강아지와 함께할 수 있는 시간은 어느 정도인가요?
+      <small>정답은 없어요. 솔직하게 골라주시면 더 잘 안내해 드려요.</small></div>
+    <div class="opts">
+      <div class="opt"><span class="e">🌙</span> 2시간 이하</div>
+      <div class="opt sel"><span class="e">☀️</span> 3~5시간</div>
+      <div class="opt"><span class="e">🏡</span> 거의 종일 함께</div>
+      <div class="opt"><span class="e">🤔</span> 잘 모르겠어요</div>
+    </div>
+    <div class="navrow">
+      <button class="btn btn-ghost" style="flex:none;padding:14px 22px">← 이전</button>
+      <button class="btn btn-primary" style="flex:none;padding:14px 28px">다음 →</button>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head"><h3>입양 전 함께 준비해요</h3><p>AI가 알려주는 기본 체크리스트</p></div>
+    <div class="checklist">
+      <div class="chk"><div class="ic" style="background:var(--peach)">🏠</div>
+        <h4>생활 환경</h4><p>안전한 공간, 산책 동선, 함께 사는 가족의 동의를 확인해요.</p></div>
+      <div class="chk"><div class="ic" style="background:var(--mint)">⏰</div>
+        <h4>시간과 책임</h4><p>평균 10년 이상 함께하는 약속이에요. 일상 루틴을 점검해요.</p></div>
+      <div class="chk"><div class="ic" style="background:var(--lilac)">💰</div>
+        <h4>예상 비용</h4><p>사료·병원·미용 등 꾸준한 비용을 미리 가늠해 봐요.</p></div>
+      <div class="chk"><div class="ic" style="background:var(--sun)">🩺</div>
+        <h4>건강 케어</h4><p>예방접종, 정기검진, 응급 상황 대비를 알아둬요.</p></div>
+    </div>
+    <div class="disc">💡 이 가이드는 <b>교육과 준비를 돕기 위한 안내</b>이며, 입양 결정은 언제나 사람의 몫입니다.
+      특정 강아지를 추천하거나 평가하지 않아요.</div>
+  </section>
+
+  <footer>
+    <div class="big">🐾 PawTrace</div>
+    <p>Every Paw Has a Story. Every Story Deserves a Home.</p>
+  </footer>
+</div>
+</body>
+</html>

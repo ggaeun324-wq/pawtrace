@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 봄이의 Pet Passport</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<link href="style.css" rel="stylesheet" />
+<style>
+  .profile{display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start}
+  .pphoto{border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);height:320px;
+    background:linear-gradient(135deg,var(--peach),var(--mint))}
+  .pphoto img{width:100%;height:100%;object-fit:cover}
+  .pinfo h1{font-size:32px;letter-spacing:-1px}
+  .pinfo .meta{color:var(--ink-soft);font-weight:600;margin-top:2px}
+  .pinfo .story{color:var(--ink-soft);margin-top:14px;font-size:15.5px}
+  .pinfo .cta{margin-top:20px;display:flex;gap:10px;max-width:420px}
+
+  .vtimeline{position:relative;margin:8px 0 0 0;padding-left:8px}
+  .vtimeline::before{content:"";position:absolute;left:26px;top:10px;bottom:10px;width:4px;
+    background:linear-gradient(180deg,var(--peach-deep),var(--mint-deep));border-radius:99px}
+  .ev{position:relative;display:flex;gap:18px;padding:14px 0}
+  .ev .dot{width:54px;height:54px;border-radius:18px;display:grid;place-items:center;font-size:23px;
+    background:#fff;box-shadow:var(--shadow-sm);flex:none;z-index:1}
+  .ev.done .dot{background:linear-gradient(135deg,var(--mint),var(--mint-deep))}
+  .ev.now .dot{background:linear-gradient(135deg,var(--peach),var(--coral));color:#fff}
+  .ev.future .dot{opacity:.5}
+  .ev .body{background:var(--card);border-radius:18px;padding:14px 18px;box-shadow:var(--shadow-sm);flex:1}
+  .ev .body .h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .ev .body b{font-size:16px}
+  .ev .body .date{color:var(--ink-soft);font-size:13px;font-weight:700}
+  .ev .body p{color:var(--ink-soft);font-size:14px;margin-top:4px}
+  .src{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F1EBE5;color:var(--ink-soft)}
+  .src.public{background:var(--mint);color:#3a8270}
+  @media(max-width:860px){.profile{grid-template-columns:1fr}.pphoto{height:260px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+    <div class="navlinks">
+      <a href="index.html">오늘의 친구</a>
+      <a href="map.html">보호소 지도</a>
+      <a href="index.html">해피엔딩</a>
+      <a href="guide.html">입양 가이드</a>
+    </div>
+  </nav>
+
+  <a class="back" href="index.html">← 오늘의 친구로 돌아가기</a>
+
+  <div class="profile">
+    <div class="pphoto">
+      <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=600&q=80" onerror="this.style.display='none'">
+    </div>
+    <div class="pinfo">
+      <span class="badge"><span class="dot"></span> 입양 가능 · 햇살보호소</span>
+      <h1 style="margin-top:10px">봄이의 Pet Passport</h1>
+      <div class="meta">추정 2살 · 믹스(추정) · 여아 · 중성화 완료</div>
+      <div class="tags">
+        <span class="tag">🌷 사람을 좋아해요</span>
+        <span class="tag mint">🦴 산책을 좋아해요</span>
+        <span class="tag lilac">😌 차분한 편</span>
+      </div>
+      <p class="story">봄이가 지나온 모든 발자국을 시간순으로 담았어요. 순위나 점수가 아니라,
+        한 생명이 걸어온 진짜 이야기입니다.</p>
+      <div class="cta">
+        <button class="btn btn-primary" style="flex:1">🏠 보호소 만나기</button>
+        <button class="btn btn-ghost mint" style="flex:1">📋 입양 가이드</button>
+      </div>
+    </div>
+  </div>
+
+  <section style="margin-top:38px">
+    <div class="sec-head"><h3>🐾 생애 타임라인</h3><p>구조부터 가족을 만나기까지</p></div>
+
+    <div class="vtimeline">
+      <div class="ev done"><div class="dot">🌳</div><div class="body">
+        <div class="h"><b>구조</b><span class="date">2026.01.08</span></div>
+        <p>한파가 이어지던 날, 마포구의 한 공원에서 떨고 있던 봄이를 시민이 발견해 신고했어요.</p>
+        <span class="src public">공공데이터</span></div></div>
+
+      <div class="ev done"><div class="dot">🏠</div><div class="body">
+        <div class="h"><b>보호소 입소</b><span class="date">2026.01.09</span></div>
+        <p>햇살보호소로 옮겨져 따뜻한 자리를 배정받았어요.</p>
+        <span class="src public">공공데이터</span></div></div>
+
+      <div class="ev done"><div class="dot">🩺</div><div class="body">
+        <div class="h"><b>건강검진</b><span class="date">2026.02.03</span></div>
+        <p>전반적으로 건강하며, 가벼운 영양 보충이 필요한 상태였어요.</p>
+        <span class="src">보호소 기록</span></div></div>
+
+      <div class="ev done"><div class="dot">💉</div><div class="body">
+        <div class="h"><b>예방접종</b><span class="date">2026.02.10</span></div>
+        <p>종합백신 및 광견병 접종을 완료했어요.</p>
+        <span class="src">보호소 기록</span></div></div>
+
+      <div class="ev done"><div class="dot">✂️</div><div class="body">
+        <div class="h"><b>중성화</b><span class="date">2026.02.24</span></div>
+        <p>중성화 수술을 마치고 안정적으로 회복했어요.</p>
+        <span class="src">보호소 기록</span></div></div>
+
+      <div class="ev now"><div class="dot">💗</div><div class="body">
+        <div class="h"><b>입양 가능</b><span class="date">지금</span></div>
+        <p>이제 봄이는 평생 가족을 기다리고 있어요. 봄이의 다음 발자국을 함께 만들어 주세요.</p>
+        <span class="src">현재 상태</span></div></div>
+
+      <div class="ev future"><div class="dot">👨‍👩‍👧</div><div class="body">
+        <div class="h"><b>가족 만남</b><span class="date">곧</span></div>
+        <p>입양 후에는 Happy Ending에서 봄이의 새로운 이야기가 이어져요.</p>
+        <span class="src">예정</span></div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="note">⚖️ 추정 정보(나이·견종 등)는 참고용이며, 출처를 함께 표시합니다.</div>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 보호소 지도</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<link href="style.css" rel="stylesheet" />
+<style>
+  /* STEP 1 : Korea region map */
+  .korea-wrap{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+    padding:26px;position:relative}
+  .korea{position:relative;width:min(540px,100%);aspect-ratio:770/690;margin:0 auto;
+    background:url(korea_kr.png) center/contain no-repeat}
+  .region{position:absolute;transform:translate(-50%,-50%);width:52px;height:52px;border-radius:50%;
+    background:rgba(255,255,255,.92);box-shadow:var(--shadow-sm);cursor:pointer;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:0;transition:.16s;border:2px solid transparent}
+  .region:hover{transform:translate(-50%,-50%) translateY(-3px) scale(1.08);
+    border-color:var(--coral);background:#fff;box-shadow:var(--shadow);z-index:5}
+  .region b{font-size:12px;font-weight:800}
+  .region span{font-size:9.5px;color:var(--ink-soft);font-weight:700}
+  .region.hot{background:rgba(208,240,229,.95)}
+  .region.metro{background:rgba(255,255,255,.95)}
+  .hint{text-align:center;color:var(--ink-soft);font-weight:700;margin-top:6px;font-size:14px}
+
+  /* STEP 2 : detail (hidden initially) */
+  #step-detail{display:none}
+  .map-layout{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+  .map-canvas{position:relative;height:560px;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);
+    background:linear-gradient(135deg,#E7F1EC 0%,#F3E7DC 100%)}
+  .map-grid{position:absolute;inset:0;background-image:
+    linear-gradient(rgba(150,120,100,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(150,120,100,.06) 1px,transparent 1px);background-size:40px 40px}
+  .map-roads span{position:absolute;background:rgba(255,255,255,.7)}
+  .pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;text-align:center}
+  .pin .head{width:38px;height:38px;border-radius:50% 50% 50% 6px;transform:rotate(45deg);
+    box-shadow:var(--shadow-sm);display:grid;place-items:center}
+  .pin .head span{transform:rotate(-45deg);font-size:16px}
+  .pin.verified .head{background:linear-gradient(135deg,var(--mint),var(--mint-deep))}
+  .pin.basic .head{background:linear-gradient(135deg,var(--sun),var(--peach-deep))}
+  .pin.unverified .head{background:#D9D2CC}
+  .pin .lbl{margin-top:8px;background:#fff;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;box-shadow:var(--shadow-sm);white-space:nowrap}
+  .me{position:absolute;width:18px;height:18px;border-radius:50%;background:#5B9BD5;border:3px solid #fff;
+    box-shadow:0 0 0 6px rgba(91,155,213,.25);transform:translate(-50%,-50%)}
+  .searchbar{position:absolute;top:16px;left:16px;right:16px;display:flex;gap:8px}
+  .searchbar input{flex:1;border:none;border-radius:16px;padding:13px 16px;font-family:inherit;font-size:15px;
+    box-shadow:var(--shadow-sm);outline:none}
+  .searchbar .btn{padding:13px 18px;border-radius:16px}
+  .legend{position:absolute;bottom:16px;left:16px;background:#fff;border-radius:16px;padding:12px 14px;
+    box-shadow:var(--shadow-sm);font-size:12.5px;font-weight:600}
+  .legend div{display:flex;align-items:center;gap:8px;margin:3px 0}
+  .legend i{width:12px;height:12px;border-radius:4px;display:inline-block}
+  .list{display:flex;flex-direction:column;gap:14px}
+  .scard{background:var(--card);border-radius:22px;padding:18px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.15s}
+  .scard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .scard .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .scard h4{font-size:17px}
+  .scard .addr{color:var(--ink-soft);font-size:13px;margin:6px 0 10px}
+  .scard .foot{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--ink-soft);font-weight:600}
+  .scard .dogs i{width:26px;height:26px;border-radius:50%;background:var(--peach);display:inline-grid;place-items:center;font-size:13px;margin-left:-6px;border:2px solid #fff}
+  @media(max-width:860px){.map-layout{grid-template-columns:1fr}.map-canvas{height:380px}
+    .korea{height:480px}.region{width:60px;height:60px}.region b{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+    <div class="navlinks">
+      <a href="index.html">오늘의 친구</a>
+      <a class="active" href="map.html">보호소 지도</a>
+      <a href="index.html">해피엔딩</a>
+      <a href="guide.html">입양 가이드</a>
+    </div>
+  </nav>
+
+  <!-- STEP 1: REGION SELECT -->
+  <div id="step-region">
+    <div class="page-head">
+      <h1>🗺️ 어느 지역에서 찾아볼까요?</h1>
+      <p>먼저 시·도를 선택하면, 그 지역의 보호소를 자세히 보여드려요</p>
+    </div>
+
+    <div class="korea-wrap">
+      <div class="korea">
+        <div class="region metro" style="left:34%;top:16%" data-r="인천"><b>인천</b><span>4곳</span></div>
+        <div class="region metro" style="left:43%;top:15%" data-r="서울"><b>서울</b><span>18곳</span></div>
+        <div class="region hot"   style="left:50%;top:13%" data-r="경기"><b>경기</b><span>26곳</span></div>
+        <div class="region"       style="left:70%;top:12%" data-r="강원"><b>강원</b><span>9곳</span></div>
+        <div class="region"       style="left:36%;top:33%" data-r="충남"><b>충남</b><span>11곳</span></div>
+        <div class="region metro" style="left:47%;top:33%" data-r="세종"><b>세종</b><span>2곳</span></div>
+        <div class="region"       style="left:58%;top:28%" data-r="충북"><b>충북</b><span>8곳</span></div>
+        <div class="region metro" style="left:49%;top:41%" data-r="대전"><b>대전</b><span>5곳</span></div>
+        <div class="region hot"   style="left:68%;top:34%" data-r="경북"><b>경북</b><span>14곳</span></div>
+        <div class="region metro" style="left:63%;top:45%" data-r="대구"><b>대구</b><span>7곳</span></div>
+        <div class="region"       style="left:40%;top:46%" data-r="전북"><b>전북</b><span>10곳</span></div>
+        <div class="region metro" style="left:80%;top:50%" data-r="울산"><b>울산</b><span>3곳</span></div>
+        <div class="region hot"   style="left:60%;top:57%" data-r="경남"><b>경남</b><span>13곳</span></div>
+        <div class="region metro" style="left:34%;top:58%" data-r="광주"><b>광주</b><span>5곳</span></div>
+        <div class="region"       style="left:41%;top:66%" data-r="전남"><b>전남</b><span>12곳</span></div>
+        <div class="region metro" style="left:72%;top:58%" data-r="부산"><b>부산</b><span>9곳</span></div>
+        <div class="region"       style="left:30%;top:93%" data-r="제주"><b>제주</b><span>4곳</span></div>
+      </div>
+      <div class="hint">👆 지역을 클릭해 보세요</div>
+    </div>
+  </div>
+
+  <!-- STEP 2: DETAIL -->
+  <div id="step-detail">
+    <a class="back" href="#" id="backBtn">← 다른 지역 선택</a>
+    <div class="page-head">
+      <h1>🏠 <span id="regionName">서울</span> 보호소</h1>
+      <p>가까운 보호소의 정보와 함께 사는 아이들을 만나보세요</p>
+    </div>
+
+    <div class="map-layout">
+      <div class="map-canvas">
+        <div class="map-grid"></div>
+        <div class="map-roads">
+          <span style="top:38%;left:0;right:0;height:14px"></span>
+          <span style="left:46%;top:0;bottom:0;width:14px"></span>
+          <span style="top:70%;left:0;right:0;height:10px"></span>
+        </div>
+        <div class="searchbar">
+          <input placeholder="동·구 이름으로 검색" />
+          <button class="btn btn-primary">📍 내 주변</button>
+        </div>
+        <div class="me" style="top:52%;left:44%"></div>
+        <div class="pin verified" style="top:30%;left:30%"><div class="head"><span>🏠</span></div><div class="lbl">햇살보호소</div></div>
+        <div class="pin verified" style="top:60%;left:62%"><div class="head"><span>🏠</span></div><div class="lbl">든든쉼터</div></div>
+        <div class="pin basic" style="top:44%;left:54%"><div class="head"><span>🏠</span></div><div class="lbl">포근하우스</div></div>
+        <div class="pin unverified" style="top:72%;left:36%"><div class="head"><span>🏠</span></div><div class="lbl">새봄센터</div></div>
+        <div class="legend">
+          <div><i style="background:var(--mint-deep)"></i> 검증됨 (정보 충분)</div>
+          <div><i style="background:var(--peach-deep)"></i> 기본 (일부 정보)</div>
+          <div><i style="background:#D9D2CC"></i> 미검증 (정보 부족)</div>
+        </div>
+      </div>
+
+      <div class="list">
+        <div class="scard">
+          <div class="top"><h4>햇살보호소</h4><span class="level verified">✓ 검증됨</span></div>
+          <div class="addr"><span class="rprefix">서울</span> 마포구 · 1.2km · 정부 등록</div>
+          <div class="foot"><span class="dogs"><i>🐶</i><i>🐕</i><i>🦴</i><i style="background:var(--mint)">+5</i></span><span>입양 가능 8마리</span></div>
+        </div>
+        <div class="scard">
+          <div class="top"><h4>포근하우스</h4><span class="level basic">기본</span></div>
+          <div class="addr"><span class="rprefix">서울</span> 용산구 · 2.4km · 정부 등록</div>
+          <div class="foot"><span class="dogs"><i>🐩</i><i>🐶</i><i style="background:var(--mint)">+1</i></span><span>입양 가능 3마리</span></div>
+        </div>
+        <div class="scard">
+          <div class="top"><h4>든든쉼터</h4><span class="level verified">✓ 검증됨</span></div>
+          <div class="addr"><span class="rprefix">서울</span> 성동구 · 3.1km · 정부 등록</div>
+          <div class="foot"><span class="dogs"><i>🐕</i><i>🐶</i><i>🐩</i><i style="background:var(--mint)">+9</i></span><span>입양 가능 12마리</span></div>
+        </div>
+        <div class="scard">
+          <div class="top"><h4>새봄센터</h4><span class="level unverified">미검증</span></div>
+          <div class="addr"><span class="rprefix">서울</span> 광진구 · 4.0km · 등록 정보 확인 필요</div>
+          <div class="foot"><span class="dogs"><i>🐶</i></span><span>정보 업데이트 예정</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="note">⚖️ 보호소 표시는 평가가 아니라 <b>공개된 정보의 충분함</b>을 나타냅니다.</div>
+  </footer>
+</div>
+
+<script>
+  const stepRegion = document.getElementById('step-region');
+  const stepDetail = document.getElementById('step-detail');
+  const regionName = document.getElementById('regionName');
+  document.querySelectorAll('.region').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const r = el.dataset.r;
+      regionName.textContent = r;
+      document.querySelectorAll('.rprefix').forEach(p=>p.textContent = r);
+      stepRegion.style.display='none';
+      stepDetail.style.display='block';
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+  document.getElementById('backBtn').addEventListener('click',(e)=>{
+    e.preventDefault();
+    stepDetail.style.display='none';
+    stepRegion.style.display='block';
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+</script>
+</body>
+</html>
