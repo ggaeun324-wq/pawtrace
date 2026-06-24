@@ -1,6 +1,6 @@
 # Project Instructions for GitHub Copilot
 
-이 프로젝트는 강아지 입양 투명성 플랫폼(펫트레이스)이다.
+이 프로젝트는 강아지 입양 투명성 플랫폼 **PawTrace — Know where every paw begins.** 이다.
 
 ## 목표
 - 사용자가 신뢰 가능한 보호소와 강아지 이력을 확인할 수 있도록 한다.
