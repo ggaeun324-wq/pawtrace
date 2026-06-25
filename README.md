@@ -48,8 +48,8 @@ PawTrace는 **목록이 아니라 "이력과 신뢰"** 를 보여줍니다.
 | Backend | FastAPI (Python) |
 | Database | PostgreSQL + PostGIS |
 | Cache | Redis |
-| AI | Azure OpenAI / OpenAI API |
-| Infra | Docker, Azure Container Apps (→ AKS 확장) |
+| AI | Amazon Bedrock / OpenAI API |
+| Infra | Docker, AWS ECS Fargate (→ EKS 확장) |
 | CI/CD | GitHub Actions |
 
 ---
@@ -57,17 +57,17 @@ PawTrace는 **목록이 아니라 "이력과 신뢰"** 를 보여줍니다.
 ## 🏗️ 아키텍처 (개요)
 
 ```
-[ Next.js + Kakao Map ]
+[ Next.js + Kakao Map ]  (CloudFront + S3)
         │ REST
         ▼
-[ FastAPI ] ── [ PostgreSQL + PostGIS ]  (보호소/강아지/이력/신고)
-   │      └──── [ Redis ]                 (지도 검색 캐싱)
-   └──────────── [ Azure OpenAI ]         (신고 분류 · 요약)
-        │
-        ▼
-[ Azure Blob Storage ]  (신고 이미지)
+[ ALB ] → [ FastAPI on ECS Fargate ]
+   │            ├──── [ Amazon RDS for PostgreSQL + PostGIS ]  (보호소/강아지/이력/신고)
+   │            ├──── [ Amazon ElastiCache (Redis) ]           (지도 검색 캐싱)
+   │            └──── [ Amazon Bedrock ]                        (신고 분류 · 요약)
+   │
+   └──── [ Amazon S3 ]  (신고 이미지)
 
-[ GitHub Actions ] → Docker build → ACR → Azure Container Apps
+[ GitHub Actions ] → Docker build → Amazon ECR → ECS Fargate (rolling deploy)
 ```
 
 ---
@@ -103,7 +103,7 @@ docker-compose up --build
 | 1주차 | 기획 · DB(PostGIS) · 기본 조회 API · Docker 로컬 구동 |
 | 2주차 | 지도 · 보호소 검색 · 강아지 이력 타임라인 |
 | 3주차 | 신고 · 관리자 검증 · 신뢰도 반영 · AI 분류 |
-| 4주차 | GitHub Actions CI/CD · Azure 배포 · 문서 정리 |
+| 4주차 | GitHub Actions CI/CD · AWS(ECS Fargate) 배포 · 문서 정리 |
 
 진행 상황은 [Issues](https://github.com/ggaeun324-wq/pawtrace/issues)와 [Milestones](https://github.com/ggaeun324-wq/pawtrace/milestones)에서 확인할 수 있습니다.
 

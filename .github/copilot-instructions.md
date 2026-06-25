@@ -21,7 +21,7 @@
 - 위치 검색은 PostGIS를 고려한다.
 - Docker로 로컬 실행 가능해야 한다.
 - GitHub Actions로 테스트/빌드 자동화를 구성한다.
-- Azure Container Apps 배포를 목표로 한다.
+- AWS(ECS Fargate) 배포를 목표로 한다. 이미지는 Amazon ECR에 저장한다.
 
 ## 코드 작성 시
 - 초보자가 이해할 수 있도록 파일 역할을 주석으로 설명한다.

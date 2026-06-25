@@ -68,15 +68,15 @@ Admin (shelters, dogs/passport, companion AI, reports, public sync)
 ## 5. MVP Scope (4 weeks, solo)
 Anonymous users browse map -> shelter -> dog -> Pet Passport and submit reports.
 Admin performs CRUD + verification. Public API seeds initial data.
-Everything runs via Docker and deploys to Azure via CI/CD. No AI / Happy Ending / login.
+Everything runs via Docker and deploys to AWS via CI/CD. No AI / Happy Ending / login.
 
 ## 6. Phase 2
 AI Adoption Assistant (guidance only), Shelter Companion AI (intro/personality/adoption card; breed = estimate label),
 Happy Ending feed + moderation, social login, volunteer/donation info, scheduled public-data sync, Redis caching.
 
 ## 7. Phase 3
-Anomaly keyword detection, notifications, shelter self-registration portal + RBAC, AKS migration + autoscale,
-observability (metrics/tracing/logs), IaC (Bicep/Terraform), i18n.
+Anomaly keyword detection, notifications, shelter self-registration portal + RBAC, EKS migration + autoscale,
+observability (metrics/tracing/logs), IaC (Terraform), i18n.
 
 ## 8. Database Design (overview)
 No dog score. Shelters carry descriptive `transparency_level`; lifetime tracked via `passport_events`.
@@ -122,7 +122,7 @@ pawtrace/
 
 ## 11. Backend Architecture
 Clean Architecture: api -> services (use cases) -> repositories (DB abstraction) -> models.
-Domain rules in `domain/`. External integrations (public API, OpenAI, Blob) isolated in `integrations/`.
+Domain rules in `domain/`. External integrations (public API, Bedrock/OpenAI, S3) isolated in `integrations/`.
 12-factor config via env. Report review -> verifications + transparency_level update is atomic.
 Public sync is idempotent (`external_id` upsert).
 
@@ -134,9 +134,9 @@ always shown with explicit badges (UX enforces ethics).
 ## 13. DevOps Architecture
 ```
 PR -> ci.yml: lint + pytest + frontend build
-main -> deploy.yml: docker build -> ACR -> Azure Container Apps revision (+ alembic migrate)
-Secrets via GitHub Secrets -> ACA env. Redis cache. /health endpoint. App Insights (P3).
-IaC-ready (infra/ Bicep in P3). Future ACA -> AKS reusing same image.
+main -> deploy.yml: docker build -> Amazon ECR -> ECS Fargate rolling update (+ alembic migrate task)
+Secrets via GitHub Secrets / AWS Secrets Manager -> ECS task env. ElastiCache Redis. /health endpoint. CloudWatch + X-Ray (P3).
+IaC-ready (infra/ Terraform in P3). Future ECS Fargate -> EKS reusing same image.
 ```
 
 ## 14. Development Roadmap (4-week MVP)
@@ -145,7 +145,7 @@ IaC-ready (infra/ Bicep in P3). Future ACA -> AKS reusing same image.
 | 1 | Setup + DB + public-data seeding + base read APIs | A, B |
 | 2 | Map + shelter + Pet Passport | C, D |
 | 3 | Reports + admin + verification loop | E, F |
-| 4 | Docker/CI/CD/Azure deploy + docs | G |
+| 4 | Docker/CI/CD/AWS deploy + docs | G |
 Phase 2: AI + Happy Ending (H, I). Phase 3: scaling/observability (J).
 
 ## 15. README Structure
@@ -154,6 +154,6 @@ tech stack -> architecture diagram -> local run (docker-compose) -> env vars -> 
 data source/license -> roadmap -> ethics (no ranking; verify-before-publish) -> license.
 
 ## 16. Future Scaling Strategy
-ACA (scale-to-zero) -> AKS with HPA reusing same image. Redis cache + Postgres read replica.
+ECS Fargate (scale-to-zero via scheduled scaling) -> EKS with HPA reusing same image. ElastiCache Redis + RDS read replica.
 GiST spatial index tuning, tile-based map clustering at scale. AI cost: cache results + async pre-generation.
-Reliability: health/readiness, App Insights tracing, blue/green via ACA revisions. IaC for reproducibility.
+Reliability: health/readiness, CloudWatch + X-Ray tracing, blue/green via ECS + CodeDeploy. IaC (Terraform) for reproducibility.
