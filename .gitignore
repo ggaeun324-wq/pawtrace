@@ -16,6 +16,15 @@ node_modules/
 .next/
 dist/
 
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+
 # OS / editor
 .DS_Store
 .idea/
