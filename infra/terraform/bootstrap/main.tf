@@ -118,3 +118,81 @@ resource "aws_dynamodb_table" "tflock" {
     type = "S"
   }
 }
+
+# ── 5) 인프라 관리용 IAM Role (Terraform plan/apply 전용) ───
+# 앱 배포(deploy)와 인프라 관리(terraform)를 분리합니다(직무 분리, 최소권한).
+# - plan 은 PR 에서도 돌아야 하므로 이 리포의 "모든 ref(브랜치/PR)" 에서 assume 허용.
+# - 실제 apply 는 워크플로 레벨에서 main push 일 때만 실행합니다.
+data "aws_iam_policy_document" "tf_assume" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+
+    principals {
+      type        = "Federated"
+      identifiers = [aws_iam_openid_connect_provider.github.arn]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "token.actions.githubusercontent.com:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    # 이 리포의 모든 ref(브랜치/PR)에서 assume 허용 → PR plan 가능
+    condition {
+      test     = "StringLike"
+      variable = "token.actions.githubusercontent.com:sub"
+      values   = ["repo:${var.github_repo}:*"]
+    }
+  }
+}
+
+resource "aws_iam_role" "terraform" {
+  name               = "${var.project}-gha-terraform"
+  assume_role_policy = data.aws_iam_policy_document.tf_assume.json
+}
+
+# VPC/ALB/ECS/RDS/ElastiCache/S3/Secrets/Logs 등 비-IAM 리소스 관리
+resource "aws_iam_role_policy_attachment" "terraform_poweruser" {
+  role       = aws_iam_role.terraform.name
+  policy_arn = "arn:aws:iam::aws:policy/PowerUserAccess"
+}
+
+# PowerUser 에는 IAM 권한이 없으므로, pawtrace-* 역할 관리 권한만 추가로 부여(최소권한)
+resource "aws_iam_role_policy" "terraform_iam" {
+  name = "${var.project}-terraform-iam"
+  role = aws_iam_role.terraform.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ManagePawtraceRoles"
+        Effect = "Allow"
+        Action = [
+          "iam:CreateRole",
+          "iam:DeleteRole",
+          "iam:GetRole",
+          "iam:TagRole",
+          "iam:UntagRole",
+          "iam:ListRolePolicies",
+          "iam:ListAttachedRolePolicies",
+          "iam:ListInstanceProfilesForRole",
+          "iam:PutRolePolicy",
+          "iam:GetRolePolicy",
+          "iam:DeleteRolePolicy",
+          "iam:AttachRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:PassRole"
+        ]
+        Resource = "arn:aws:iam::*:role/${var.project}-*"
+      },
+      {
+        Sid      = "ServiceLinkedRoles"
+        Effect   = "Allow"
+        Action   = ["iam:CreateServiceLinkedRole"]
+        Resource = "*"
+      }
+    ]
+  })
+}

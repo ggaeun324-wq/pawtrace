@@ -1,0 +1,105 @@
+# infra — Terraform 인프라 자동화 (IaC CI/CD)
+# 흐름(실무 표준 GitOps):
+#   * PR 에서 infra/terraform/** 변경 → `terraform plan` 실행 후 결과를 PR 코멘트로 게시(리뷰용)
+#   * main 으로 머지(push) → `terraform apply` 자동 실행
+# 인증: GitHub OIDC(키리스). bootstrap 에서 만든 pawtrace-gha-terraform 역할을 assume.
+# 사전 준비: Secret AWS_TF_ROLE_ARN, Variable DEPLOY_ENABLED=true
+name: infra
+
+on:
+  pull_request:
+    paths:
+      - "infra/terraform/**"
+      - ".github/workflows/infra.yml"
+  push:
+    branches: [main]
+    paths:
+      - "infra/terraform/**"
+      - ".github/workflows/infra.yml"
+
+permissions:
+  id-token: write # AWS OIDC
+  contents: read
+  pull-requests: write # plan 결과를 PR 코멘트로 게시
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: pawtrace-api
+  IMAGE_TAG: v1 # 인프라가 참조할 컨테이너 이미지 태그
+  TF_VERSION: "1.9.8"
+  WORKDIR: infra/terraform
+
+jobs:
+  terraform:
+    name: terraform plan / apply
+    # 역할/시크릿이 준비되기 전에는 전체 잡을 건너뜁니다.
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      # OIDC 로 인프라 관리 역할 assume (액세스키 불필요)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ECS 가 띄울 컨테이너 이미지 URI 를 계정 ID 로부터 구성 → TF 변수로 전달
+      - name: Resolve container image
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          IMAGE="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "TF_VAR_container_image=$IMAGE" >> "$GITHUB_ENV"
+          echo "Using image: $IMAGE"
+
+      - name: Terraform fmt (check)
+        run: terraform fmt -check
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+      - name: Terraform plan
+        id: plan
+        run: terraform plan -input=false -no-color -out=tfplan
+
+      # PR 일 때: plan 요약을 코멘트로 게시(리뷰 후 머지 → apply)
+      - name: Comment plan on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const out = `${{ steps.plan.outputs.stdout }}`;
+            const body = [
+              '#### 🛠️ Terraform Plan',
+              '```terraform',
+              out.length > 60000 ? out.slice(0, 60000) + '\n... (truncated)' : out,
+              '```',
+              `*by @${context.actor} · merge to \`main\` to apply*`
+            ].join('\n');
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number,
+            });
+            const mark = '#### 🛠️ Terraform Plan';
+            const prev = comments.find(c => c.body && c.body.startsWith(mark));
+            if (prev) {
+              await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: prev.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: context.issue.number, body });
+            }
+
+      # main 으로 머지된 경우에만 실제 적용
+      - name: Terraform apply
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -input=false -auto-approve tfplan

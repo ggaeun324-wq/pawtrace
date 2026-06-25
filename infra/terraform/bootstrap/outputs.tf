@@ -4,6 +4,11 @@ output "deploy_role_arn" {
   value       = aws_iam_role.deploy.arn
 }
 
+output "terraform_role_arn" {
+  description = "→ GitHub Secret: AWS_TF_ROLE_ARN (인프라 파이프라인용)"
+  value       = aws_iam_role.terraform.arn
+}
+
 output "ecr_repository_url" {
   description = "ECR 이미지 저장소 URL"
   value       = aws_ecr_repository.api.repository_url

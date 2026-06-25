@@ -5,14 +5,16 @@ terraform {
     random = { source = "hashicorp/random", version = "~> 3.0" }
   }
 
-  # 원격 상태 (bootstrap 에서 만든 S3/DynamoDB). 처음엔 주석 처리하고 로컬 상태로 시작해도 됩니다.
-  # backend "s3" {
-  #   bucket         = "pawtrace-tfstate-<ACCOUNT_ID>"
-  #   key            = "main/terraform.tfstate"
-  #   region         = "ap-northeast-2"
-  #   dynamodb_table = "pawtrace-tflock"
-  #   encrypt        = true
-  # }
+  # 원격 상태 (bootstrap 에서 만든 S3/DynamoDB).
+  # GitHub Actions 와 로컬이 동일한 상태파일을 공유하기 위해 S3 백엔드를 사용합니다.
+  # 주의: backend 블록은 변수를 쓸 수 없어 버킷명을 직접 적습니다(계정 ID 포함).
+  backend "s3" {
+    bucket         = "pawtrace-tfstate-545750751672"
+    key            = "main/terraform.tfstate"
+    region         = "ap-northeast-2"
+    dynamodb_table = "pawtrace-tflock"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
