@@ -133,8 +133,8 @@ always shown with explicit badges (UX enforces ethics).
 
 ## 13. DevOps Architecture
 ```
-PR -> ci.yml: lint + pytest + frontend build
-main -> deploy.yml: docker build -> Amazon ECR -> ECS Fargate rolling update (+ alembic migrate task)
+PR -> ci.yml: lint + pytest + frontend build + GitGuardian (secret) + SonarQube (SAST/quality gate)
+main -> deploy.yml: docker build -> Trivy image scan -> Amazon ECR -> ECS Fargate rolling update (+ alembic migrate task)
 Secrets via GitHub Secrets / AWS Secrets Manager -> ECS task env. ElastiCache Redis. /health endpoint. CloudWatch + X-Ray (P3).
 IaC-ready (infra/ Terraform in P3). Future ECS Fargate -> EKS reusing same image.
 ```

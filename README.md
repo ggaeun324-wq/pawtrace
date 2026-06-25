@@ -51,6 +51,7 @@ PawTrace는 **목록이 아니라 "이력과 신뢰"** 를 보여줍니다.
 | AI | Amazon Bedrock / OpenAI API |
 | Infra | Docker, AWS ECS Fargate (→ EKS 확장) |
 | CI/CD | GitHub Actions |
+| 보안(DevSecOps) | Trivy(이미지 CVE) · SonarQube(SAST) · GitGuardian(시크릿) |
 
 ---
 

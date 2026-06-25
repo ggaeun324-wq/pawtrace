@@ -53,17 +53,43 @@ flowchart TB
 ## 2. CI/CD 파이프라인 (GitHub Actions)
 
 ```mermaid
-flowchart LR
-    dev([개발자 push]) --> pr{PR?}
-    pr -->|PR| ci["ci.yml\nlint · pytest · 프론트 build"]
-    pr -->|main merge| build["deploy.yml\nDocker build"]
-    build --> ecr["Amazon ECR\npush 이미지:태그"]
+flowchart TB
+    dev([개발자 push / PR]) --> sec
+
+    subgraph sec["1. 코드 보안 게이트 (PR)"]
+        gg["GitGuardian\n시크릿 유출 스캔"]
+        sonar["SonarQube\n코드 품질·취약점(SAST)"]
+        test["lint · pytest · 프론트 build"]
+    end
+
+    sec --> gate{모두 통과?}
+    gate -->|No| block["❌ 머지 차단"]
+    gate -->|Yes, main merge| build["Docker build"]
+
+    subgraph img["2. 이미지 보안 게이트"]
+        trivy["Trivy\n이미지 취약점·CVE 스캔"]
+    end
+
+    build --> trivy
+    trivy -->|High/Critical 발견| block
+    trivy -->|통과| ecr["Amazon ECR\npush 이미지:태그"]
     ecr --> migrate["ECS one-off Task\nalembic migrate"]
     migrate --> deploy["ECS 서비스\nrolling update"]
     deploy --> health["ALB /health\n정상 확인"]
 ```
 
-흐름: **PR이면 테스트만**, **main 머지면** 이미지 빌드 → ECR push → DB 마이그레이션 → ECS 롤링 배포 → 헬스체크.
+흐름: **PR 단계**에서 GitGuardian(시크릿)·SonarQube(코드 품질/SAST)·테스트를 모두 통과해야 머지 가능.
+**main 머지** 시 Docker 빌드 → **Trivy**로 이미지 CVE 스캔 → ECR push → DB 마이그레이션 → ECS 롤링 배포 → 헬스체크.
+
+### DevSecOps 도구 (CI/CD 보안 게이트)
+| 단계 | 도구 | 역할 | GitHub Actions 연동 |
+|---|---|---|---|
+| 커밋/PR | **GitGuardian** | 시크릿·API 키 유출 탐지 | `ggshield` action (PR에서 차단) |
+| PR | **SonarQube / SonarCloud** | 코드 품질 · 버그 · SAST 취약점 | `sonarqube-scan-action` + Quality Gate |
+| 빌드 | **Trivy** | 컨테이너 이미지/의존성 CVE 스캔 | `aquasecurity/trivy-action` (HIGH/CRITICAL시 실패) |
+| (보강) | Dependabot / `pip-audit` | 의존성 자동 업데이트·감사 | GitHub 기본 + CI step |
+
+> 원칙: **Shift-Left** — 문제를 배포 전 PR 단계에서 막는다. 시크릿은 절대 커밋되지 않고(GitGuardian), 코드 결함은 Quality Gate에서(SonarQube), 알려진 취약점은 이미지 단계에서(Trivy) 걸러진다.
 
 ---
 
@@ -83,6 +109,33 @@ flowchart LR
 | 모니터링 | App Insights / Azure Monitor | **CloudWatch + X-Ray (OpenTelemetry)** | P3 |
 | IaC | Bicep | **Terraform** | P3 |
 | 오케스트레이션 확장 | AKS | **Amazon EKS** | 향후 |
+| CI 보안 스캔 | — | **Trivy · SonarQube · GitGuardian** | ✅(CI에 포함) |
+
+---
+
+## 3-1. AI 구성 (Amazon Bedrock)
+
+AI는 PawTrace의 핵심 차별화 기능이지만, **MVP에서는 인프라만 연결해 두고 기능은 P2에서 활성화**합니다(비용·검증 부담 분리).
+
+```mermaid
+flowchart LR
+    ecs["FastAPI on ECS\n(integrations/ai)"] --> br["Amazon Bedrock\n(Claude / Titan 등 관리형 LLM)"]
+    br --> cache[("ElastiCache\nAI 결과 캐싱")]
+    ecs -. 결과 저장 .-> rds[("RDS\nai_category·요약 컬럼")]
+```
+
+| AI 기능 | 설명 | 단계 |
+|---|---|---|
+| 신고 내용 분류 | 신고 텍스트를 카테고리로 분류(`reports.ai_category`) | P2 |
+| 보호소/강아지 설명 요약 | 긴 설명을 짧게 요약 | P2 |
+| AI 입양 가이드 | 사용자 답변 기반 준비사항 안내(결정은 사람) | P2 |
+| Shelter Companion | 사진→소개글·성격·입양카드·SNS 초안 생성 | P2 |
+
+설계 원칙
+- LLM 호출은 `integrations/ai`에 격리(추후 Bedrock↔OpenAI 교체 가능).
+- **비용 절감**: 동일 입력은 ElastiCache로 캐싱, 사진 카드 등은 비동기 사전 생성.
+- **권한**: ECS Task Role(IAM)로 `bedrock:InvokeModel`만 부여, 키리스(keyless) 호출.
+- **윤리 가드레일**: AI는 강아지를 점수화·랭킹하지 않으며, 추정값은 항상 "estimate" 라벨로 표기.
 
 ---
 
