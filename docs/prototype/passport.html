@@ -54,9 +54,9 @@
       <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=600&q=80" onerror="this.style.display='none'">
     </div>
     <div class="pinfo">
-      <span class="badge"><span class="dot"></span> 입양 가능 · 햇살보호소</span>
-      <h1 style="margin-top:10px">봄이의 Pet Passport</h1>
-      <div class="meta">추정 2살 · 믹스(추정) · 여아 · 중성화 완료</div>
+      <span class="badge" id="pBadge"><span class="dot"></span> 입양 가능 · 햇살보호소</span>
+      <h1 style="margin-top:10px" id="pTitle">봄이의 Pet Passport</h1>
+      <div class="meta" id="pMeta">추정 2살 · 믹스(추정) · 여아 · 중성화 완료</div>
       <div class="tags">
         <span class="tag">🌷 사람을 좋아해요</span>
         <span class="tag mint">🦴 산책을 좋아해요</span>
@@ -74,7 +74,7 @@
   <section style="margin-top:38px">
     <div class="sec-head"><h3>🐾 생애 타임라인</h3><p>구조부터 가족을 만나기까지</p></div>
 
-    <div class="vtimeline">
+    <div class="vtimeline" id="vtimeline">
       <div class="ev done"><div class="dot">🌳</div><div class="body">
         <div class="h"><b>구조</b><span class="date">2026.01.08</span></div>
         <p>한파가 이어지던 날, 마포구의 한 공원에서 떨고 있던 봄이를 시민이 발견해 신고했어요.</p>
@@ -116,5 +116,50 @@
     <div class="note">⚖️ 추정 정보(나이·견종 등)는 참고용이며, 출처를 함께 표시합니다.</div>
   </footer>
 </div>
+
+<script src="api.js"></script>
+<script>
+  // Pet Passport 를 실제 API(/dogs/{id}/passport)로 채웁니다. ?dog=2 로 다른 강아지도 조회 가능.
+  (async function () {
+    const { pawFetch, badge, LABELS, dogMeta, fmtDate } = window.PawAPI;
+    const dogId = new URLSearchParams(location.search).get("dog") || 1;
+    badge("loading");
+    try {
+      const d = await pawFetch("/dogs/" + dogId + "/passport");
+
+      document.getElementById("pTitle").textContent = d.name + "의 Pet Passport";
+      document.getElementById("pMeta").textContent = dogMeta(d);
+      document.getElementById("pBadge").innerHTML =
+        '<span class="dot"></span> ' +
+        (LABELS.adoption[d.adoption_status] || d.adoption_status) +
+        " · " + d.shelter_name;
+
+      const vt = document.getElementById("vtimeline");
+      const evs = d.events || [];
+      vt.innerHTML =
+        evs
+          .map((ev) => {
+            const cls = ev.event_date ? "done" : "now";
+            const icon = LABELS.eventIcon[ev.event_type] || "🐾";
+            const src = LABELS.source[ev.source] || { text: ev.source, cls: "" };
+            return `
+        <div class="ev ${cls}"><div class="dot">${icon}</div><div class="body">
+          <div class="h"><b>${ev.title}</b><span class="date">${fmtDate(ev.event_date)}</span></div>
+          <p>${ev.memo || ""}</p>
+          <span class="src ${src.cls}">${src.text}</span></div></div>`;
+          })
+          .join("") +
+        `
+        <div class="ev future"><div class="dot">👨‍👩‍👧</div><div class="body">
+          <div class="h"><b>가족 만남</b><span class="date">곧</span></div>
+          <p>입양 후에는 Happy Ending에서 새로운 이야기가 이어져요.</p>
+          <span class="src">예정</span></div></div>`;
+
+      badge("live");
+    } catch (e) {
+      badge("demo");
+    }
+  })();
+</script>
 </body>
 </html>

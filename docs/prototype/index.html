@@ -121,17 +121,17 @@
     <div class="hero-photo">
       <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=80"
            alt="오늘의 친구 강아지" onerror="this.style.display='none'"/>
-      <div class="badge"><span class="dot"></span> 입양 가능 · 햇살보호소</div>
+      <div class="badge" id="heroBadge"><span class="dot"></span> 입양 가능 · 햇살보호소</div>
     </div>
     <div class="hero-body">
-      <h2>봄이</h2>
-      <div class="meta">추정 2살 · 믹스(추정) · 여아 · 중성화 완료</div>
+      <h2 id="heroName">봄이</h2>
+      <div class="meta" id="heroMeta">추정 2살 · 믹스(추정) · 여아 · 중성화 완료</div>
       <div class="tags">
         <span class="tag">🌷 사람을 좋아해요</span>
         <span class="tag mint">🦴 산책을 좋아해요</span>
         <span class="tag lilac">😌 차분한 편</span>
       </div>
-      <p class="story">추운 겨울 공원에서 구조된 봄이는 사람 손길을 처음엔 무서워했지만,
+      <p class="story" id="heroStory">추운 겨울 공원에서 구조된 봄이는 사람 손길을 처음엔 무서워했지만,
         지금은 누구보다 다정한 친구가 되었어요. 봄이의 이야기를 따라가 보세요.</p>
       <div class="actions">
         <a class="btn btn-primary" href="passport.html" style="text-decoration:none;text-align:center;display:block">📖 봄이의 이야기 보기</a>
@@ -149,7 +149,7 @@
       <p>봄이가 지나온 생애의 발자국 — 순위가 아니라 이야기입니다</p>
     </div>
     <div class="passport">
-      <div class="timeline">
+      <div class="timeline" id="homeTimeline">
         <div class="step done"><div class="ic">🌳</div><b>구조</b><span>1월 · 공원</span></div>
         <div class="step done"><div class="ic">🏠</div><b>보호소 입소</b><span>1월</span></div>
         <div class="step done"><div class="ic">🩺</div><b>건강검진</b><span>2월</span></div>
@@ -199,5 +199,46 @@
     <div class="note">⚖️ PawTrace는 강아지를 평가하거나 순위를 매기지 않습니다. 투명한 정보만 전합니다.</div>
   </footer>
 </div>
+
+<script src="api.js"></script>
+<script>
+  // 홈 '오늘의 친구' + 미니 타임라인을 실제 API 로 채웁니다 (실패 시 데모 데이터 유지).
+  (async function () {
+    const { pawFetch, badge, LABELS, dogMeta, fmtDate } = window.PawAPI;
+    badge("loading");
+    try {
+      const dog = await pawFetch("/dogs/today");
+
+      document.getElementById("heroName").textContent = dog.name;
+      document.getElementById("heroMeta").textContent = dogMeta(dog);
+      if (dog.story) document.getElementById("heroStory").textContent = dog.story;
+      document.getElementById("heroBadge").innerHTML =
+        '<span class="dot"></span> ' +
+        (LABELS.adoption[dog.adoption_status] || dog.adoption_status) +
+        " · " + dog.shelter_name;
+
+      // 미니 타임라인: passport 의 event 들을 가로 스텝으로 변환
+      const passport = await pawFetch("/dogs/" + dog.id + "/passport");
+      const tl = document.getElementById("homeTimeline");
+      const events = passport.events || [];
+      tl.innerHTML =
+        events
+          .map((ev, i) => {
+            const cls = ev.event_date ? "done" : "now";
+            const icon = LABELS.eventIcon[ev.event_type] || "🐾";
+            const when = ev.event_date
+              ? Number(ev.event_date.slice(5, 7)) + "월"
+              : "지금";
+            return `<div class="step ${cls}"><div class="ic">${icon}</div><b>${ev.title}</b><span>${when}</span></div>`;
+          })
+          .join("") +
+        '<div class="step future"><div class="ic">👨‍👩‍👧</div><b>가족 만남</b><span>곧</span></div>';
+
+      badge("live");
+    } catch (e) {
+      badge("demo"); // 백엔드 미연결 → HTML 데모 데이터 그대로 노출
+    }
+  })();
+</script>
 </body>
 </html>
