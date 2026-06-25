@@ -7,6 +7,8 @@
 보호소와 강아지의 **이력을 지도와 타임라인으로 투명하게** 보여주어,
 신뢰할 수 있는 입양 문화를 돕는 플랫폼입니다.
 
+📘 **처음 보시나요? → [전체 구조 학습 가이드 (docs/LEARNING.md)](docs/LEARNING.md)** 에서 아키텍처 전체를 쉬운 용어로 설명합니다.
+
 </div>
 
 ---
@@ -49,8 +51,9 @@ PawTrace는 **목록이 아니라 "이력과 신뢰"** 를 보여줍니다.
 | Database | PostgreSQL + PostGIS |
 | Cache | Redis |
 | AI | Amazon Bedrock / OpenAI API |
-| Infra | Docker, AWS ECS Fargate (→ EKS 확장) |
-| CI/CD | GitHub Actions |
+| Infra | Docker, AWS ECS Fargate (→ EKS 확장), **Terraform (IaC)** |
+| CI/CD | GitHub Actions — **앱 배포(`deploy.yml`) + 인프라 배포(`infra.yml`, GitOps)** |
+| 인증 | **OIDC 키리스** (GitHub→AWS, 액세스키 미저장) |
 | 보안(DevSecOps) | Trivy · SonarQube · GitGuardian · Hadolint · Codecov · Syft(SBOM) · Dependabot · pre-commit |
 
 ---
@@ -71,6 +74,27 @@ PawTrace는 **목록이 아니라 "이력과 신뢰"** 를 보여줍니다.
 [ GitHub Actions ] → Docker build → Amazon ECR → ECS Fargate (rolling deploy)
 ```
 
+> 🚀 **실제 AWS 배포 검증 완료** — `terraform apply`로 39개 리소스(VPC~RDS)를 생성하고
+> ALB 주소에서 `/api/v1/dogs/today`가 정상 응답함을 확인했습니다. (비용 관리를 위해 데모 후 `destroy`)
+> 📐 상세 다이어그램·매핑표: [`docs/architecture/aws-infrastructure.md`](docs/architecture/aws-infrastructure.md)
+
+---
+
+## 🔁 배포 & 운영 (GitOps)
+
+배포는 **두 개의 GitHub Actions 파이프라인**으로 자동화되어 있습니다.
+
+| 파이프라인 | 트리거 | 하는 일 |
+|---|---|---|
+| `deploy.yml` (앱) | main 푸시 | Docker 빌드 → Trivy 스캔 → SBOM → OIDC 인증 → ECR push → ECS 롤링 배포 |
+| `infra.yml` (인프라) | PR / main 머지 | **PR에 `terraform plan` 코멘트** → 머지 시 `terraform apply` |
+
+- **OIDC 키리스 인증** — 액세스키를 저장하지 않고, 앱용/인프라용 **역할을 분리**(최소 권한).
+- **원격 상태** — Terraform state를 S3 + DynamoDB(잠금)로 공유.
+- **비용 전략** — 평소 `terraform destroy`로 내려두고 필요할 때 `apply`로 5분 만에 재현.
+
+> 자세한 흐름과 용어는 [학습 가이드](docs/LEARNING.md)와 [`infra/terraform/README.md`](infra/terraform/README.md) 참고.
+
 ---
 
 ## 📁 폴더 구조
@@ -80,9 +104,15 @@ pawtrace/
 ├─ backend/                FastAPI (Clean Architecture, 시드 데이터로 즉시 동작)
 │  └─ app/{core,domain,schemas,models,repositories,services,api/v1,integrations}
 ├─ frontend/               Next.js 스캐폴드 (src/{app,components,lib,styles})
-├─ infra/terraform/        AWS IaC (P3)
-├─ docs/                   PRD · 아키텍처 다이어그램 · UI 프로토타입
-├─ .github/workflows/      ci.yml(린트·테스트·보안) · deploy.yml(Trivy·ECR·ECS)
+├─ infra/terraform/        AWS IaC ✅ 배포 검증 완료
+│  ├─ bootstrap/           1회: OIDC·배포 역할·ECR·tfstate(S3/DynamoDB)
+│  └─ *.tf                 VPC·ALB·ECS·RDS·ElastiCache·S3 (메인 인프라)
+├─ docs/
+│  ├─ LEARNING.md          📘 전체 구조 학습 가이드(용어 풀이·면접 Q&A)
+│  ├─ PRD.md               제품 요구사항·API 명세
+│  ├─ architecture/        AWS 인프라·CI/CD 다이어그램
+│  └─ prototype/           UI 프로토타입(api.js로 실제 API 연결)
+├─ .github/workflows/      ci.yml · deploy.yml(앱) · infra.yml(인프라 GitOps)
 ├─ docker-compose.yml      api + PostGIS + Redis
 └─ .pre-commit-config.yaml
 ```
@@ -119,7 +149,9 @@ docker compose up --build
 | 1주차 | 기획 · DB(PostGIS) · 기본 조회 API · Docker 로컬 구동 |
 | 2주차 | 지도 · 보호소 검색 · 강아지 이력 타임라인 |
 | 3주차 | 신고 · 관리자 검증 · 신뢰도 반영 · AI 분류 |
-| 4주차 | GitHub Actions CI/CD · AWS(ECS Fargate) 배포 · 문서 정리 |
+| 4주차 | GitHub Actions CI/CD · AWS(ECS Fargate) 배포 · 문서 정리 ✅ |
+
+> ✅ 4주차(인프라/CI-CD/배포)는 **Terraform IaC + GitOps 파이프라인 + 실배포 검증**까지 완료했습니다.
 
 진행 상황은 [Issues](https://github.com/ggaeun324-wq/pawtrace/issues)와 [Milestones](https://github.com/ggaeun324-wq/pawtrace/milestones)에서 확인할 수 있습니다.
 
