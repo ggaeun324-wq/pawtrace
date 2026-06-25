@@ -103,11 +103,12 @@ volunteer_info / donation_info(id, shelter_id FK, ...)                          
 Design point: `source` / `external_id` separate public-data vs manual entries -> idempotent sync & provenance.
 
 ## 9. REST API (summary, /api/v1)
-**Public:** `GET /shelters?lat,lng,radius,region`, `GET /shelters/{id}`, `GET /shelters/{id}/dogs`,
+**Public:** `GET /dogs/today` (홈 "오늘의 친구"), `GET /shelters?lat,lng,radius,region` (응답에 `available_dog_count` 집계 포함), `GET /shelters/{id}`, `GET /shelters/{id}/dogs`,
 `GET /dogs/{id}`, `GET /dogs/{id}/passport`, `GET /happy-endings` (P2), `POST /reports`.
 **Admin (JWT):** `POST /auth/login`, `POST/PUT/DELETE /admin/shelters`, `/admin/dogs`,
 `POST/PUT /admin/dogs/{id}/passport`, `GET /admin/reports`, `PATCH /admin/reports/{id}`,
 `POST /admin/sync/public`, `POST /admin/dogs/{id}/ai-card` (P2).
+**AI (P2):** `POST /ai/adoption-guide` (가이드 화면; 답변 기반 안내, 결정은 사람).
 Standards: pagination `?page&size`, errors `{code,message}`, estimated/unverified fields carry meta.
 
 ## 10. Folder Structure

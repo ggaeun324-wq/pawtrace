@@ -1,0 +1,21 @@
+# 커밋 전 로컬 검사 (실무에서 흔히 사용)
+# 설치: pip install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^backend/
+  - repo: https://github.com/gitguardian/ggshield
+    rev: v1.32.0
+    hooks:
+      - id: ggshield
+        language_version: python3
+        stages: [commit]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml

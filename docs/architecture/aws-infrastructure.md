@@ -84,12 +84,19 @@ flowchart TB
 ### DevSecOps 도구 (CI/CD 보안 게이트)
 | 단계 | 도구 | 역할 | GitHub Actions 연동 |
 |---|---|---|---|
-| 커밋/PR | **GitGuardian** | 시크릿·API 키 유출 탐지 | `ggshield` action (PR에서 차단) |
+| 커밋(로컬) | **pre-commit** | 커밋 전 ruff·시크릿 검사 | `.pre-commit-config.yaml` |
+| 커밋/PR | **GitGuardian** | 시크릿·API 키 유출 탐지 | `ggshield-action` (PR에서 차단) |
+| PR | **Ruff + Pytest** | 린트 · 테스트 | CI `backend` job |
 | PR | **SonarQube / SonarCloud** | 코드 품질 · 버그 · SAST 취약점 | `sonarqube-scan-action` + Quality Gate |
+| PR | **Codecov** | 테스트 커버리지 리포트/게이트 | `codecov-action` |
+| PR | **Hadolint** | Dockerfile 린트 | `hadolint-action` |
 | 빌드 | **Trivy** | 컨테이너 이미지/의존성 CVE 스캔 | `aquasecurity/trivy-action` (HIGH/CRITICAL시 실패) |
-| (보강) | Dependabot / `pip-audit` | 의존성 자동 업데이트·감사 | GitHub 기본 + CI step |
+| 빌드 | **Syft (SBOM)** | 소프트웨어 명세서 생성(공급망 가시성) | `anchore/sbom-action` |
+| IaC | **Checkov / tfsec** | Terraform 보안 스캔 | P3, infra/ 연동 |
+| 의존성 | **Dependabot** | 의존성 자동 업데이트 PR | `.github/dependabot.yml` |
+| 공급망(P3) | **Cosign** | 이미지 서명/검증 | 배포 파이프라인 확장 |
 
-> 원칙: **Shift-Left** — 문제를 배포 전 PR 단계에서 막는다. 시크릿은 절대 커밋되지 않고(GitGuardian), 코드 결함은 Quality Gate에서(SonarQube), 알려진 취약점은 이미지 단계에서(Trivy) 걸러진다.
+> 원칙: **Shift-Left** — 문제를 배포 전 PR 단계에서 막는다. 시크릿은 절대 커밋되지 않고(pre-commit·GitGuardian), 코드 결함은 Quality Gate에서(SonarQube·Codecov), 알려진 취약점은 이미지 단계에서(Trivy), 공급망은 SBOM/서명(Syft·Cosign)으로 추적한다.
 
 ---
 

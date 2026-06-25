@@ -1,0 +1,12 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# str,Enum 패턴과 typing.Generic 은 pydantic 호환을 위해 의도적으로 유지
+ignore = ["UP042", "UP046"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -51,7 +51,7 @@ PawTrace는 **목록이 아니라 "이력과 신뢰"** 를 보여줍니다.
 | AI | Amazon Bedrock / OpenAI API |
 | Infra | Docker, AWS ECS Fargate (→ EKS 확장) |
 | CI/CD | GitHub Actions |
-| 보안(DevSecOps) | Trivy(이미지 CVE) · SonarQube(SAST) · GitGuardian(시크릿) |
+| 보안(DevSecOps) | Trivy · SonarQube · GitGuardian · Hadolint · Codecov · Syft(SBOM) · Dependabot · pre-commit |
 
 ---
 
@@ -73,9 +73,23 @@ PawTrace는 **목록이 아니라 "이력과 신뢰"** 를 보여줍니다.
 
 ---
 
-## 🚀 로컬 실행 방법
+## 📁 폴더 구조
 
-> ⚠️ 아직 초기 개발 단계입니다. 아래는 목표 실행 흐름입니다.
+```
+pawtrace/
+├─ backend/                FastAPI (Clean Architecture, 시드 데이터로 즉시 동작)
+│  └─ app/{core,domain,schemas,models,repositories,services,api/v1,integrations}
+├─ frontend/               Next.js 스캐폴드 (src/{app,components,lib,styles})
+├─ infra/terraform/        AWS IaC (P3)
+├─ docs/                   PRD · 아키텍처 다이어그램 · UI 프로토타입
+├─ .github/workflows/      ci.yml(린트·테스트·보안) · deploy.yml(Trivy·ECR·ECS)
+├─ docker-compose.yml      api + PostGIS + Redis
+└─ .pre-commit-config.yaml
+```
+
+---
+
+## 🚀 로컬 실행 방법
 
 ```bash
 # 1. 저장소 클론
@@ -83,16 +97,17 @@ git clone https://github.com/ggaeun324-wq/pawtrace.git
 cd pawtrace
 
 # 2. 환경변수 설정 (.env.example 복사 후 값 입력)
-cp .env.example .env
+cp backend/.env.example backend/.env
 
-# 3. Docker로 전체 스택 실행 (api + postgres/postgis + redis)
-docker-compose up --build
+# 3. Docker로 전체 스택 실행 (api + postgis + redis)
+docker compose up --build
 
 # 4. 접속
 # - API 문서:   http://localhost:8000/docs
-# - 프론트엔드: http://localhost:3000
+# - 헬스체크:   http://localhost:8000/api/v1/health
 ```
 
+> 💡 DB 없이도 백엔드는 **시드 데이터로 즉시 응답**합니다(`docker compose up` 또는 `uvicorn app.main:app`).
 > 🔐 API 키·DB 비밀번호 등 민감한 값은 모두 `.env`(환경변수)로 분리하며 저장소에 커밋하지 않습니다.
 
 ---

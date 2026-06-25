@@ -1,0 +1,19 @@
+# PawTrace Backend 의존성 (MVP)
+# - 프레임워크/서버
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+# - 설정/검증
+pydantic==2.9.2
+pydantic-settings==2.5.2
+# - DB (PostgreSQL + PostGIS). MVP 첫 실행은 시드 데이터로 동작하며,
+#   실제 DB 연결 시 아래 패키지를 사용합니다.
+sqlalchemy==2.0.35
+geoalchemy2==0.15.2
+psycopg2-binary==2.9.9
+alembic==1.13.3
+# - 캐시 (P2)
+redis==5.1.0
+# - 개발/테스트
+pytest==8.3.3
+httpx==0.27.2
+ruff==0.6.9

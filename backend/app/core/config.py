@@ -1,0 +1,28 @@
+"""환경설정 (12-factor).
+
+민감한 값(DB 비밀번호, AI 키 등)은 코드가 아니라 환경변수/.env 로 주입합니다.
+"""
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    APP_NAME: str = "PawTrace API"
+    APP_VERSION: str = "0.1.0"
+    API_V1_PREFIX: str = "/api/v1"
+
+    # 콤마로 구분된 허용 오리진 (예: "http://localhost:3000")
+    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:8777"]
+
+    # DB / 캐시 (실제 연결 시 사용)
+    DATABASE_URL: str = "postgresql+psycopg2://pawtrace:pawtrace@db:5432/pawtrace"
+    REDIS_URL: str = "redis://cache:6379/0"
+
+    # 외부 연동 (값이 없으면 stub 모드로 동작)
+    PUBLIC_DATA_API_KEY: str | None = None
+    AWS_S3_BUCKET: str | None = None
+    BEDROCK_MODEL_ID: str | None = None
+
+
+settings = Settings()

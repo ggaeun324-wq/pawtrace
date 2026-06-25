@@ -1,0 +1,71 @@
+# Deploy — main 머지 시: 이미지 보안 스캔 → ECR push → ECS Fargate 배포
+# 사전 준비: GitHub Secrets(또는 OIDC role)로 AWS 자격 + ECR/ECS 리소스가 있어야 합니다.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write   # AWS OIDC (키리스 인증)
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: pawtrace-api
+  ECS_CLUSTER: pawtrace
+  ECS_SERVICE: pawtrace-api
+
+jobs:
+  build-scan-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t $ECR_REPOSITORY:${{ github.sha }} ./backend
+
+      # 1) 이미지 취약점 스캔 (HIGH/CRITICAL 발견 시 실패)
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+
+      # 2) SBOM 생성 (공급망 가시성)
+      - name: Generate SBOM (Syft)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          format: spdx-json
+          artifact-name: sbom.spdx.json
+
+      # 3) AWS 인증 (OIDC) → ECR 로그인 → push
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag & push to ECR
+        run: |
+          IMAGE=${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
+          docker tag $ECR_REPOSITORY:${{ github.sha }} $IMAGE
+          docker push $IMAGE
+
+      # 4) DB 마이그레이션 (one-off task) — 실제 task 정의는 infra/ 참고
+      #    aws ecs run-task ... alembic upgrade head
+
+      # 5) ECS 롤링 배포 (새 태스크 정의 등록 후 서비스 업데이트)
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --force-new-deployment
