@@ -19,6 +19,8 @@ env:
 jobs:
   build-scan-deploy:
     runs-on: ubuntu-latest
+    # AWS 배포 role 이 설정되기 전에는 배포 잡 전체를 건너뜁니다.
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
     steps:
       - uses: actions/checkout@v4
 

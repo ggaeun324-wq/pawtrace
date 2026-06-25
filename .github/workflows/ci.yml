@@ -51,23 +51,34 @@ jobs:
   secret-scan:
     name: GitGuardian (secret scan)
     runs-on: ubuntu-latest
+    env:
+      GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: GitGuardian/ggshield-action@v1
-        env:
-          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+      - name: ggshield scan
+        if: ${{ env.GITGUARDIAN_API_KEY != '' }}
+        uses: GitGuardian/ggshield-action@v1
+      - name: Skip notice
+        if: ${{ env.GITGUARDIAN_API_KEY == '' }}
+        run: echo "GITGUARDIAN_API_KEY 미설정 → 시크릿 스캔 건너뜀"
 
   sast:
     name: SonarQube (quality gate / SAST)
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: SonarSource/sonarqube-scan-action@v3
+      - name: SonarQube scan
+        if: ${{ env.SONAR_TOKEN != '' }}
+        uses: SonarSource/sonarqube-scan-action@v3
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         continue-on-error: true
+      - name: Skip notice
+        if: ${{ env.SONAR_TOKEN == '' }}
+        run: echo "SONAR_TOKEN 미설정 → SAST 건너뜀"
