@@ -13,6 +13,23 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    # 테스트용 PostGIS. 마이그레이션이 깨지지 않는지 + 읽기 API 계약을 실제 DB 로 검증.
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: pawtrace
+          POSTGRES_PASSWORD: pawtrace
+          POSTGRES_DB: pawtrace
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pawtrace"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg2://pawtrace:pawtrace@localhost:5432/pawtrace
     steps:
       - uses: actions/checkout@v4
 
@@ -26,6 +43,12 @@ jobs:
 
       - name: Ruff (lint)
         run: ruff check .
+
+      - name: Alembic migrate (스키마 회귀 방지)
+        run: alembic upgrade head
+
+      - name: Seed (멱등)
+        run: python -m scripts.seed_db
 
       - name: Pytest (+coverage)
         run: |

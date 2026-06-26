@@ -5,8 +5,7 @@ uvicorn[standard]==0.30.6
 # - 설정/검증
 pydantic==2.9.2
 pydantic-settings==2.5.2
-# - DB (PostgreSQL + PostGIS). MVP 첫 실행은 시드 데이터로 동작하며,
-#   실제 DB 연결 시 아래 패키지를 사용합니다.
+# - DB (PostgreSQL + PostGIS). 기동 시 Alembic 마이그레이션 + 시드로 DB 에서 동작합니다.
 sqlalchemy==2.0.35
 geoalchemy2==0.15.2
 psycopg2-binary==2.9.9
@@ -16,4 +15,4 @@ redis==5.1.0
 # - 개발/테스트
 pytest==8.3.3
 httpx==0.27.2
-ruff==0.6.9
+ruff==0.15.20

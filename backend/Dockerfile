@@ -10,8 +10,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 애플리케이션 코드
+# 애플리케이션 코드 + 마이그레이션/시드 스크립트
 COPY app ./app
+COPY migrations ./migrations
+COPY scripts ./scripts
+COPY alembic.ini ./alembic.ini
 
 # 비루트 사용자로 실행 (보안)
 RUN useradd -m appuser

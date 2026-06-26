@@ -1,7 +1,7 @@
 # PawTrace 로컬 개발 스택
 # 실행: docker compose up --build
-#  - api:   FastAPI (시드 데이터로 즉시 동작)
-#  - db:    PostgreSQL + PostGIS
+#  - api:   FastAPI. 기동 시 alembic 마이그레이션 → 시드 → uvicorn 순으로 자동 실행.
+#  - db:    PostgreSQL + PostGIS (healthcheck 로 준비 완료 후 api 가 시작).
 #  - cache: Redis (P2부터 사용)
 services:
   api:
@@ -11,8 +11,15 @@ services:
     env_file:
       - ./backend/.env.example
     depends_on:
-      - db
-      - cache
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+    # DB 준비 완료 후: 스키마 마이그레이션 → 시드(멱등) → 서버 기동.
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m scripts.seed_db &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
   db:
     image: postgis/postgis:16-3.4
@@ -24,6 +31,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pawtrace"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   cache:
     image: redis:7-alpine

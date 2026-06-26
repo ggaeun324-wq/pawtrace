@@ -8,7 +8,8 @@
 """
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, String, func
+from geoalchemy2 import Geometry
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -36,7 +37,14 @@ class Shelter(Base):
     source: Mapped[DataSource] = mapped_column(default=DataSource.manual)
     external_id: Mapped[str | None] = mapped_column(String(80), index=True)
     phone: Mapped[str | None] = mapped_column(String(40))
-    # location: geography(Point,4326)  # PostGIS — geoalchemy2 Geometry 로 운영 추가
+    # 지도 표시용 좌표(스키마 lat/lng 와 1:1). 프론트 마커가 직접 사용합니다.
+    lat: Mapped[float | None] = mapped_column(Float)
+    lng: Mapped[float | None] = mapped_column(Float)
+    # PostGIS 좌표. 반경검색(ST_DWithin, Sprint 2)을 위해 미리 컬럼만 둡니다.
+    # spatial_index=False: 첫 마이그레이션을 단순하게 유지하고 인덱스는 검색 구현 시 추가.
+    location: Mapped[object | None] = mapped_column(
+        Geometry(geometry_type="POINT", srid=4326, spatial_index=False)
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     dogs: Mapped[list["Dog"]] = relationship(back_populates="shelter")
@@ -49,6 +57,8 @@ class Dog(Base):
     shelter_id: Mapped[int] = mapped_column(ForeignKey("shelters.id"))
     name: Mapped[str] = mapped_column(String(80))
     breed_label: Mapped[str | None] = mapped_column(String(80))
+    # 품종은 보호견 특성상 대부분 추정. 스키마 breed_is_estimate 와 1:1.
+    breed_is_estimate: Mapped[bool] = mapped_column(Boolean, default=True)
     age_estimate: Mapped[str | None] = mapped_column(String(40))
     gender: Mapped[str | None] = mapped_column(String(10))
     is_neutered: Mapped[bool | None]
