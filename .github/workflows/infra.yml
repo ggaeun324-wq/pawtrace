@@ -48,7 +48,7 @@ jobs:
 
       # OIDC 로 인프라 관리 역할 assume (액세스키 불필요)
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_TF_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
