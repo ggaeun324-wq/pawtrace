@@ -9,7 +9,7 @@ email-validator==2.2.0
 # - DB (PostgreSQL + PostGIS). 기동 시 Alembic 마이그레이션 + 시드로 DB 에서 동작합니다.
 sqlalchemy==2.0.35
 geoalchemy2==0.15.2
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.12
 alembic==1.13.3
 # - 캐시 (P2)
 redis==5.1.0
