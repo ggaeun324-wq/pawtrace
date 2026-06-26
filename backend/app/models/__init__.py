@@ -18,6 +18,7 @@ from app.domain import (
     DataSource,
     PassportEventType,
     TransparencyLevel,
+    UserRole,
 )
 
 
@@ -103,3 +104,20 @@ class Report(Base):
     status: Mapped[str] = mapped_column(String(20), default="pending")
     admin_memo: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class User(Base):
+    """회원 계정. 비밀번호는 평문 저장 금지 — bcrypt 해시만 저장합니다."""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(255))
+    display_name: Mapped[str] = mapped_column(String(60))
+    role: Mapped[UserRole] = mapped_column(default=UserRole.user)
+    # shelter_staff 인 경우 담당 보호소. 그 외에는 NULL.
+    shelter_id: Mapped[int | None] = mapped_column(ForeignKey("shelters.id"))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+

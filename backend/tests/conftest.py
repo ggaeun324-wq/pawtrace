@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 import app.models  # noqa: F401  (메타데이터 등록)
 from app.db.session import Base, engine
-from scripts.seed_db import seed
+from scripts.seed_db import seed, seed_users
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -26,4 +26,5 @@ def _ensure_db():
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
     Base.metadata.create_all(engine)
     seed()
+    seed_users()
     yield

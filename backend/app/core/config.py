@@ -19,6 +19,14 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+psycopg2://pawtrace:pawtrace@db:5432/pawtrace"
     REDIS_URL: str = "redis://cache:6379/0"
 
+    # 인증(JWT). 운영에서는 반드시 환경변수로 강력한 시크릿을 주입하세요.
+    JWT_SECRET: str = "dev-only-change-me"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_MINUTES: int = 60 * 24  # 토큰 유효기간(분) = 24시간
+    # 시드로 생성되는 플랫폼 관리자 계정(데모용). 운영에서는 환경변수로 교체.
+    ADMIN_EMAIL: str = "admin@pawtrace.dev"
+    ADMIN_PASSWORD: str = "admin1234"
+
     # 외부 연동 (값이 없으면 stub 모드로 동작)
     PUBLIC_DATA_API_KEY: str | None = None
     AWS_S3_BUCKET: str | None = None

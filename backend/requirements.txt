@@ -5,6 +5,7 @@ uvicorn[standard]==0.30.6
 # - 설정/검증
 pydantic==2.9.2
 pydantic-settings==2.5.2
+email-validator==2.2.0
 # - DB (PostgreSQL + PostGIS). 기동 시 Alembic 마이그레이션 + 시드로 DB 에서 동작합니다.
 sqlalchemy==2.0.35
 geoalchemy2==0.15.2
@@ -12,6 +13,9 @@ psycopg2-binary==2.9.9
 alembic==1.13.3
 # - 캐시 (P2)
 redis==5.1.0
+# - 인증 (JWT + 비밀번호 해싱)
+pyjwt==2.9.0
+bcrypt==4.2.0
 # - 개발/테스트
 pytest==8.3.3
 httpx==0.27.2

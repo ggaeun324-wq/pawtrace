@@ -28,7 +28,8 @@ services:
       POSTGRES_PASSWORD: pawtrace
       POSTGRES_DB: pawtrace
     ports:
-      - "5432:5432"
+      # 다른 로컬 서비스와 5432 충돌 시 DB_PORT 로 변경 가능 (예: DB_PORT=5433)
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 로그인 / 회원가입</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --coral:#E8836A; --coral-deep:#D96E55; --mint:#CCE7DF;
+    --mint-deep:#9BCFC0; --shadow:0 12px 28px rgba(200,140,110,.14);
+    --shadow-sm:0 6px 15px rgba(150,120,100,.10); --r:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+  .wrap{max-width:480px;margin:0 auto;padding:0 22px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;
+       text-decoration:none;color:var(--ink)}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:30px 28px;margin-top:14px}
+  .title{text-align:center;margin-bottom:6px;font-size:24px;font-weight:800;letter-spacing:-.5px}
+  .sub{text-align:center;color:var(--ink-soft);font-weight:600;margin-bottom:22px;font-size:14px}
+  .tabs{display:flex;gap:8px;background:#F4ECE4;border-radius:999px;padding:6px;margin-bottom:22px}
+  .tabs button{flex:1;border:0;background:transparent;padding:11px;border-radius:999px;font-weight:800;
+       color:var(--ink-soft);cursor:pointer;font-size:15px;transition:.2s}
+  .tabs button.active{background:#fff;color:var(--coral-deep);box-shadow:var(--shadow-sm)}
+  label{display:block;font-weight:700;font-size:13px;margin:14px 0 6px;color:var(--ink)}
+  input,select{width:100%;padding:13px 15px;border:2px solid #EFE4DA;border-radius:16px;
+       font-size:15px;font-family:inherit;background:#FCF8F3;transition:.2s}
+  input:focus,select:focus{outline:none;border-color:var(--coral);background:#fff}
+  .role-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+  .role-cards label{margin:0;cursor:pointer}
+  .role-cards input{display:none}
+  .role-box{border:2px solid #EFE4DA;border-radius:16px;padding:14px 10px;text-align:center;
+       font-weight:800;transition:.2s;background:#FCF8F3}
+  .role-box .emo{font-size:24px;display:block;margin-bottom:4px}
+  .role-box small{display:block;font-weight:600;color:var(--ink-soft);font-size:11px;margin-top:3px}
+  .role-cards input:checked + .role-box{border-color:var(--coral);background:#fff;box-shadow:var(--shadow-sm)}
+  .btn{width:100%;margin-top:22px;padding:15px;border:0;border-radius:18px;font-size:16px;
+       font-weight:800;cursor:pointer;background:linear-gradient(135deg,var(--coral),var(--coral-deep));
+       color:#fff;box-shadow:0 8px 18px rgba(217,110,85,.3);transition:.2s}
+  .btn:hover{transform:translateY(-1px)}
+  .btn:disabled{opacity:.6;cursor:wait}
+  .msg{margin-top:16px;padding:12px 15px;border-radius:14px;font-weight:700;font-size:14px;display:none}
+  .msg.err{background:#FBE3DC;color:#C0472E;display:block}
+  .msg.ok{background:#D7EFE7;color:#2f7d68;display:block}
+  .hide{display:none}
+  .hint{margin-top:14px;font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.7}
+  .hint code{background:#F4ECE4;padding:2px 7px;border-radius:8px;font-weight:700}
+  .back{display:block;text-align:center;margin-top:18px;color:var(--ink-soft);
+       text-decoration:none;font-weight:700;font-size:14px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+    </nav>
+
+    <div class="card">
+      <div class="title">🐾 환영합니다</div>
+      <div class="sub">Know where every paw begins.</div>
+
+      <div class="tabs">
+        <button id="tab-login" class="active" onclick="switchTab('login')">로그인</button>
+        <button id="tab-register" onclick="switchTab('register')">회원가입</button>
+      </div>
+
+      <!-- 로그인 -->
+      <form id="form-login" onsubmit="return doLogin(event)">
+        <label>이메일</label>
+        <input type="email" id="login-email" placeholder="you@example.com" required />
+        <label>비밀번호</label>
+        <input type="password" id="login-password" placeholder="••••••••" required />
+        <button class="btn" type="submit">로그인</button>
+        <div class="hint">
+          데모 계정 — 관리자 <code>admin@pawtrace.dev / admin1234</code><br />
+          보호소 직원 <code>staff@pawtrace.dev / staff1234</code>
+        </div>
+      </form>
+
+      <!-- 회원가입 -->
+      <form id="form-register" class="hide" onsubmit="return doRegister(event)">
+        <label>가입 유형</label>
+        <div class="role-cards">
+          <label>
+            <input type="radio" name="role" value="user" checked onchange="toggleShelter()" />
+            <div class="role-box"><span class="emo">🙋</span>일반 사용자<small>입양 희망자</small></div>
+          </label>
+          <label>
+            <input type="radio" name="role" value="shelter_staff" onchange="toggleShelter()" />
+            <div class="role-box"><span class="emo">🏠</span>보호소 직원<small>관리자</small></div>
+          </label>
+        </div>
+
+        <label>이름 / 닉네임</label>
+        <input type="text" id="reg-name" placeholder="홍길동" required />
+        <label>이메일</label>
+        <input type="email" id="reg-email" placeholder="you@example.com" required />
+        <label>비밀번호 <small style="color:var(--ink-soft)">(8자 이상)</small></label>
+        <input type="password" id="reg-password" placeholder="••••••••" minlength="8" required />
+
+        <div id="shelter-field" class="hide">
+          <label>담당 보호소</label>
+          <select id="reg-shelter"></select>
+        </div>
+
+        <button class="btn" type="submit">회원가입</button>
+      </form>
+
+      <div id="msg" class="msg"></div>
+      <a class="back" href="index.html">← 홈으로 돌아가기</a>
+    </div>
+  </div>
+
+<script src="api.js"></script>
+<script>
+  const { register, login, pawFetch } = window.PawAPI;
+  const msg = document.getElementById("msg");
+
+  function showMsg(text, kind) {
+    msg.className = "msg " + kind;
+    msg.textContent = text;
+  }
+
+  function switchTab(which) {
+    const isLogin = which === "login";
+    document.getElementById("tab-login").classList.toggle("active", isLogin);
+    document.getElementById("tab-register").classList.toggle("active", !isLogin);
+    document.getElementById("form-login").classList.toggle("hide", !isLogin);
+    document.getElementById("form-register").classList.toggle("hide", isLogin);
+    msg.className = "msg";
+  }
+
+  function toggleShelter() {
+    const role = document.querySelector('input[name="role"]:checked').value;
+    document.getElementById("shelter-field").classList.toggle("hide", role !== "shelter_staff");
+  }
+
+  // 회원가입 폼의 보호소 목록을 백엔드에서 채웁니다(있으면).
+  async function loadShelters() {
+    try {
+      const list = await pawFetch("/shelters");
+      const sel = document.getElementById("reg-shelter");
+      sel.innerHTML = list
+        .map((s) => `<option value="${s.id}">${s.name} (${s.region})</option>`)
+        .join("");
+    } catch {
+      /* 백엔드 미연결 시 무시 */
+    }
+  }
+  loadShelters();
+
+  async function doLogin(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector("button");
+    btn.disabled = true;
+    try {
+      const me = await login(
+        document.getElementById("login-email").value.trim(),
+        document.getElementById("login-password").value
+      );
+      showMsg(`환영합니다, ${me.display_name}님! 잠시 후 홈으로 이동합니다.`, "ok");
+      setTimeout(() => (location.href = "index.html"), 900);
+    } catch (err) {
+      showMsg(err.message, "err");
+      btn.disabled = false;
+    }
+    return false;
+  }
+
+  async function doRegister(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector("button");
+    btn.disabled = true;
+    const role = document.querySelector('input[name="role"]:checked').value;
+    const payload = {
+      email: document.getElementById("reg-email").value.trim(),
+      password: document.getElementById("reg-password").value,
+      display_name: document.getElementById("reg-name").value.trim(),
+      role,
+    };
+    if (role === "shelter_staff") {
+      payload.shelter_id = Number(document.getElementById("reg-shelter").value);
+    }
+    try {
+      await register(payload);
+      showMsg("회원가입 완료! 자동으로 로그인합니다.", "ok");
+      await login(payload.email, payload.password);
+      setTimeout(() => (location.href = "index.html"), 900);
+    } catch (err) {
+      showMsg(err.message, "err");
+      btn.disabled = false;
+    }
+    return false;
+  }
+</script>
+</body>
+</html>

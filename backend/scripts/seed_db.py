@@ -11,8 +11,11 @@
 """
 from datetime import date
 
+from app.core.config import settings
+from app.core.security import hash_password
 from app.db.session import SessionLocal
-from app.models import Dog, PassportEvent, Shelter
+from app.domain import UserRole
+from app.models import Dog, PassportEvent, Shelter, User
 from app.repositories import seed as seed_src
 
 
@@ -42,6 +45,57 @@ def seed() -> None:
             f"강아지 {len(seed_src.DOGS)} · "
             f"타임라인 이벤트 {sum(len(v) for v in seed_src.PASSPORT_EVENTS.values())}"
         )
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+def seed_users() -> None:
+    """데모 계정 시드(멱등). 이메일 기준으로 없을 때만 생성합니다.
+    - 플랫폼 관리자(admin): config 의 ADMIN_EMAIL/ADMIN_PASSWORD.
+    - 보호소 직원(shelter_staff): 1번 보호소 담당 데모 계정.
+    """
+    db = SessionLocal()
+    try:
+        demo_accounts = [
+            {
+                "email": settings.ADMIN_EMAIL,
+                "password": settings.ADMIN_PASSWORD,
+                "display_name": "플랫폼 관리자",
+                "role": UserRole.admin,
+                "shelter_id": None,
+            },
+            {
+                "email": "staff@pawtrace.dev",
+                "password": "staff1234",
+                "display_name": "행복 보호소 직원",
+                "role": UserRole.shelter_staff,
+                "shelter_id": 1,
+            },
+        ]
+        created = 0
+        for acc in demo_accounts:
+            exists = db.query(User).filter(User.email == acc["email"]).first()
+            if exists:
+                continue
+            # shelter_staff 데모는 해당 보호소가 있을 때만 연결.
+            shelter_id = acc["shelter_id"]
+            if shelter_id is not None and db.get(Shelter, shelter_id) is None:
+                shelter_id = None
+            db.add(
+                User(
+                    email=acc["email"],
+                    hashed_password=hash_password(acc["password"]),
+                    display_name=acc["display_name"],
+                    role=acc["role"],
+                    shelter_id=shelter_id,
+                )
+            )
+            created += 1
+        db.commit()
+        print(f"[seed] 데모 계정 {created}개 생성(이미 있으면 건너뜀).")
     except Exception:
         db.rollback()
         raise
@@ -106,4 +160,5 @@ def seed_data_events() -> list[PassportEvent]:
 
 if __name__ == "__main__":
     seed()
+    seed_users()
 

@@ -108,6 +108,86 @@
     return iso.replaceAll("-", "."); // 2026-01-08 → 2026.01.08
   }
 
+  // ── 인증(JWT) 헬퍼 ────────────────────────────────────────────────
+  //   토큰/사용자 정보는 localStorage 에 보관합니다(데모 수준).
+  const TOKEN_KEY = "pawtrace_token";
+  const USER_KEY = "pawtrace_user";
+
+  function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+  }
+  function getUser() {
+    try {
+      return JSON.parse(localStorage.getItem(USER_KEY));
+    } catch {
+      return null;
+    }
+  }
+  function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+  }
+
+  // 인증이 필요한 호출용 fetch (Authorization 헤더 자동 첨부)
+  async function pawSend(path, method, body, withAuth) {
+    const headers = { "Content-Type": "application/json" };
+    if (withAuth && getToken()) headers["Authorization"] = "Bearer " + getToken();
+    const res = await fetch(API_BASE + path, {
+      method: method || "GET",
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = (data && data.detail) || "요청 실패 (HTTP " + res.status + ")";
+      throw new Error(typeof msg === "string" ? msg : "입력값을 확인해 주세요.");
+    }
+    return data;
+  }
+
+  async function register(payload) {
+    return pawSend("/auth/register", "POST", payload, false);
+  }
+  async function login(email, password) {
+    const tok = await pawSend("/auth/login", "POST", { email, password }, false);
+    localStorage.setItem(TOKEN_KEY, tok.access_token);
+    const me = await pawSend("/auth/me", "GET", null, true);
+    localStorage.setItem(USER_KEY, JSON.stringify(me));
+    return me;
+  }
+
+  const ROLE_LABEL = {
+    user: "일반 사용자",
+    shelter_staff: "보호소 직원",
+    admin: "플랫폼 관리자",
+  };
+
+  // 모든 페이지 우상단에 로그인 상태 칩을 표시
+  function authChip() {
+    let el = document.getElementById("auth-chip");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "auth-chip";
+      el.style.cssText =
+        "position:fixed;top:14px;right:130px;z-index:999;font:700 12px/1 " +
+        "Pretendard,system-ui,sans-serif;padding:8px 13px;border-radius:999px;" +
+        "box-shadow:0 6px 15px rgba(150,120,100,.18);background:#fff;color:#7a6a5d;" +
+        "text-decoration:none;cursor:pointer";
+      document.body.appendChild(el);
+    }
+    const u = getUser();
+    if (u) {
+      el.textContent = "🐾 " + u.display_name + " (" + (ROLE_LABEL[u.role] || u.role) + ") · 로그아웃";
+      el.onclick = () => {
+        logout();
+        location.reload();
+      };
+    } else {
+      el.textContent = "🐾 로그인 / 회원가입";
+      el.onclick = () => (location.href = "login.html");
+    }
+  }
+
   // 전역으로 노출 (각 페이지 스크립트에서 사용)
   window.PawAPI = {
     API_BASE,
@@ -116,5 +196,19 @@
     LABELS,
     dogMeta,
     fmtDate,
+    register,
+    login,
+    logout,
+    getToken,
+    getUser,
+    authChip,
+    ROLE_LABEL,
   };
+
+  // 모든 페이지에서 로그인 상태 칩을 자동 표시
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", authChip);
+  } else {
+    authChip();
+  }
 })();

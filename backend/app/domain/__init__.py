@@ -33,3 +33,14 @@ class PassportEventType(str, Enum):
 class DataSource(str, Enum):
     public_api = "public_api"  # 공공데이터 출처
     manual = "manual"          # 보호소/관리자 직접 입력
+
+
+class UserRole(str, Enum):
+    """회원 역할.
+    - user: 일반 사용자(입양 희망자). 신고 등록 가능.
+    - shelter_staff: 보호소 직원. 자기 보호소의 강아지/정보 관리.
+    - admin: 플랫폼 관리자. 전체 검토/신뢰도 관리.
+    """
+    user = "user"
+    shelter_staff = "shelter_staff"
+    admin = "admin"
