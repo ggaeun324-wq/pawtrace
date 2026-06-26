@@ -157,6 +157,7 @@ def seed_data_dogs() -> list[Dog]:
             adoption_status=d["adoption_status"],
             thumbnail_url=d.get("thumbnail_url"),
             story=d.get("story"),
+            protect_end_date=_to_date(d.get("protect_end_date")),
         )
         for d in seed_src.DOGS
     ]

@@ -35,6 +35,22 @@
   .friend-label{display:flex;align-items:center;justify-content:center;gap:8px;
        font-weight:800;color:var(--coral-deep);margin-bottom:14px;font-size:15px}
   .friend-label .pill{background:#fff;padding:6px 14px;border-radius:999px;box-shadow:var(--shadow-sm)}
+  .urgent-note{text-align:center;color:var(--ink-soft);font-weight:600;font-size:14px;margin:-4px 0 18px}
+  .rail{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;
+       padding:4px 4px 16px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+  .rail::-webkit-scrollbar{height:8px}
+  .rail::-webkit-scrollbar-thumb{background:var(--peach-deep);border-radius:99px}
+  .ucard{scroll-snap-align:start;flex:0 0 270px;background:var(--card);border-radius:var(--r);
+       box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  .uphoto{position:relative;height:190px;background:linear-gradient(135deg,var(--peach),var(--mint))}
+  .uphoto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .dday{position:absolute;top:14px;left:14px;color:#fff;font-weight:800;font-size:13px;
+       padding:6px 12px;border-radius:999px;box-shadow:var(--shadow-sm)}
+  .ubody{padding:18px 18px 20px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .ubody b{font-size:20px;letter-spacing:-.5px}
+  .umeta{color:var(--ink-soft);font-weight:600;font-size:13.5px}
+  .ustory{color:var(--ink-soft);font-size:14px;margin:4px 0 14px;flex:1;
+       display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .hero{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
        overflow:hidden;display:grid;grid-template-columns:1.05fr 1fr}
   .hero-photo{position:relative;min-height:420px;background:
@@ -115,30 +131,21 @@
     <p>Every Story Deserves a Home. <span class="heart">♥</span></p>
   </div>
 
-  <div class="friend-label"><span class="pill">☀️ 오늘의 친구를 만나보세요</span></div>
+  <div class="friend-label"><span class="pill">⏰ 지금 가족이 필요한 아이들</span></div>
+  <p class="urgent-note" id="urgentNote">보호 공고 마감이 가까워, 새로운 가족의 손길을 기다리는 친구들이에요. 옆으로 넘겨 만나보세요 →</p>
 
-  <div class="hero">
-    <div class="hero-photo">
-      <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=80"
-           alt="오늘의 친구 강아지" onerror="this.style.display='none'"/>
-      <div class="badge" id="heroBadge"><span class="dot"></span> 입양 가능 · 햇살보호소</div>
-    </div>
-    <div class="hero-body">
-      <h2 id="heroName">봄이</h2>
-      <div class="meta" id="heroMeta">추정 2살 · 믹스(추정) · 여아 · 중성화 완료</div>
-      <div class="tags">
-        <span class="tag">🌷 사람을 좋아해요</span>
-        <span class="tag mint">🦴 산책을 좋아해요</span>
-        <span class="tag lilac">😌 차분한 편</span>
+  <div class="rail" id="urgentRail">
+    <div class="ucard">
+      <div class="uphoto">
+        <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=700&q=80"
+             alt="강아지" onerror="this.style.display='none'"/>
+        <div class="dday" style="background:#FF6B6B">보호 마감 D-3</div>
       </div>
-      <p class="story" id="heroStory">추운 겨울 공원에서 구조된 봄이는 사람 손길을 처음엔 무서워했지만,
-        지금은 누구보다 다정한 친구가 되었어요. 봄이의 이야기를 따라가 보세요.</p>
-      <div class="actions">
-        <a class="btn btn-primary" href="passport.html" style="text-decoration:none;text-align:center;display:block">📖 봄이의 이야기 보기</a>
-        <div class="btn-row">
-          <a class="btn btn-ghost" href="map.html" style="text-decoration:none;text-align:center">🏠 보호소 만나기</a>
-          <a class="btn btn-ghost mint" href="guide.html" style="text-decoration:none;text-align:center">📋 입양 가이드</a>
-        </div>
+      <div class="ubody">
+        <b>봄이</b>
+        <span class="umeta">추정 2살 · 믹스(추정) · 여아</span>
+        <p class="ustory">추운 겨울 공원에서 구조된 봄이가 새로운 가족을 기다리고 있어요.</p>
+        <a class="btn btn-primary" href="passport.html?dog=1" style="text-decoration:none;text-align:center;display:block">📖 이야기 보기</a>
       </div>
     </div>
   </div>
@@ -202,28 +209,57 @@
 
 <script src="api.js"></script>
 <script>
-  // 홈 '오늘의 친구' + 미니 타임라인을 실제 API 로 채웁니다 (실패 시 데모 데이터 유지).
+  // 홈: '지금 가족이 필요한 아이들'(보호 마감 임박) 캐러셀 + 미니 타임라인.
   (async function () {
-    const { pawFetch, badge, LABELS, dogMeta, fmtDate } = window.PawAPI;
+    const { pawFetch, badge, LABELS, dogMeta } = window.PawAPI;
     badge("loading");
+
+    // 1) 보호 마감 임박 강아지 캐러셀
+    function ddayColor(d) {
+      if (d == null) return "#9AA0A6";
+      if (d <= 2) return "#FF6B6B";      // 가장 임박 - 코랄
+      if (d <= 5) return "#F5A623";      // 곧 - 주황
+      return "#5FB58E";                  // 여유 - 민트
+    }
+    function ddayText(d) {
+      if (d == null) return "보호 마감 임박";
+      if (d <= 0) return "보호 마감 D-day";
+      return "보호 마감 D-" + d;
+    }
+    function card(dog) {
+      const color = ddayColor(dog.days_left);
+      const img = dog.thumbnail_url
+        ? `<img src="${dog.thumbnail_url}" alt="${dog.name}" onerror="this.style.display='none'"/>`
+        : "";
+      return `<div class="ucard">
+        <div class="uphoto">${img}<div class="dday" style="background:${color}">${ddayText(dog.days_left)}</div></div>
+        <div class="ubody">
+          <b>${dog.name}</b>
+          <span class="umeta">${dogMeta(dog)}</span>
+          <p class="ustory">${dog.story || "새로운 가족의 손길을 기다리고 있어요."}</p>
+          <a class="btn btn-primary" href="passport.html?dog=${dog.id}" style="text-decoration:none;text-align:center;display:block">📖 이야기 보기</a>
+        </div>
+      </div>`;
+    }
+    try {
+      const dogs = await pawFetch("/dogs/urgent");
+      if (Array.isArray(dogs) && dogs.length) {
+        document.getElementById("urgentRail").innerHTML = dogs.map(card).join("");
+      }
+      badge("live");
+    } catch (e) {
+      badge("demo"); // 백엔드 미연결 → HTML 데모 카드 유지
+    }
+
+    // 2) 미니 타임라인(대표 강아지 한 마리)
     try {
       const dog = await pawFetch("/dogs/today");
-
-      document.getElementById("heroName").textContent = dog.name;
-      document.getElementById("heroMeta").textContent = dogMeta(dog);
-      if (dog.story) document.getElementById("heroStory").textContent = dog.story;
-      document.getElementById("heroBadge").innerHTML =
-        '<span class="dot"></span> ' +
-        (LABELS.adoption[dog.adoption_status] || dog.adoption_status) +
-        " · " + dog.shelter_name;
-
-      // 미니 타임라인: passport 의 event 들을 가로 스텝으로 변환
       const passport = await pawFetch("/dogs/" + dog.id + "/passport");
       const tl = document.getElementById("homeTimeline");
       const events = passport.events || [];
       tl.innerHTML =
         events
-          .map((ev, i) => {
+          .map((ev) => {
             const cls = ev.event_date ? "done" : "now";
             const icon = LABELS.eventIcon[ev.event_type] || "🐾";
             const when = ev.event_date
@@ -233,10 +269,8 @@
           })
           .join("") +
         '<div class="step future"><div class="ic">👨‍👩‍👧</div><b>가족 만남</b><span>곧</span></div>';
-
-      badge("live");
     } catch (e) {
-      badge("demo"); // 백엔드 미연결 → HTML 데모 데이터 그대로 노출
+      // 타임라인은 데모 데이터 유지
     }
   })();
 </script>

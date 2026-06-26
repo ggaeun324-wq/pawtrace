@@ -40,3 +40,17 @@ def test_happy_endings_returns_adopted():
     dogs = r.json()
     assert len(dogs) >= 1
     assert all(d["adoption_status"] == "adopted" for d in dogs)
+
+
+def test_urgent_dogs_sorted_by_deadline():
+    r = client.get("/api/v1/dogs/urgent")
+    assert r.status_code == 200
+    dogs = r.json()
+    assert len(dogs) >= 1
+    # 모두 입양 가능 + 마감일 보유
+    assert all(d["adoption_status"] == "available" for d in dogs)
+    assert all(d["protect_end_date"] for d in dogs)
+    # days_left 계산 + 마감 빠른 순 정렬 확인
+    deadlines = [d["protect_end_date"] for d in dogs]
+    assert deadlines == sorted(deadlines)
+    assert all(d["days_left"] is not None for d in dogs)

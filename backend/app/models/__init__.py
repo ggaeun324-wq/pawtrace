@@ -66,6 +66,9 @@ class Dog(Base):
     adoption_status: Mapped[AdoptionStatus] = mapped_column(
         default=AdoptionStatus.protected
     )
+    # 보호 공고 마감일(임박 강아지 정렬용). 공공데이터 noticeEdt 와 1:1.
+    # 마감 후에는 만나기 어려울 수 있어 '지금 가족이 필요한 아이들' 노출에 사용.
+    protect_end_date: Mapped[date | None] = mapped_column(Date)
     source: Mapped[DataSource] = mapped_column(default=DataSource.manual)
     external_id: Mapped[str | None] = mapped_column(String(80), index=True)
     thumbnail_url: Mapped[str | None] = mapped_column(String(300))

@@ -34,6 +34,15 @@ class HappyDog(DogBase):
     story: str
 
 
+class UrgentDog(DogBase):
+    """'지금 가족이 필요한 아이들' 카드용.
+    보호 공고 마감일이 가까운 순으로 노출합니다(days_left = 마감까지 남은 일수).
+    """
+    story: str
+    protect_end_date: date | None = None
+    days_left: int | None = None
+
+
 class PassportEvent(BaseModel):
     event_type: PassportEventType
     event_date: date | None = None

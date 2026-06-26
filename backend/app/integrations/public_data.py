@@ -56,13 +56,21 @@ def _as_item_list(payload: dict) -> list[dict]:
     return item if isinstance(item, list) else [item]
 
 
+def _parse_yyyymmdd(value: str | None) -> str | None:
+    """'YYYYMMDD' → ISO 'YYYY-MM-DD'. 형식이 아니면 None."""
+    s = (value or "").strip()
+    if len(s) == 8 and s.isdigit():
+        return f"{s[0:4]}-{s[4:6]}-{s[6:8]}"
+    return None
+
+
 def parse_animals(payload: dict) -> list[dict]:
     """공공 API JSON → PawTrace 친화 dict 목록 (순수 함수, 테스트 대상).
 
     반환 dict 구조:
       shelter: {external_id, name, region, address, phone}
       dog:     {external_id, name, breed_label, gender, is_neutered,
-                adoption_status, thumbnail_url, story}
+                adoption_status, thumbnail_url, story, protect_end_date}
     """
     results: list[dict] = []
     for it in _as_item_list(payload):
@@ -94,6 +102,8 @@ def parse_animals(payload: dict) -> list[dict]:
                     "thumbnail_url": (it.get("popfile") or it.get("popfile1") or "").strip()
                     or None,
                     "story": special or None,
+                    # noticeEdt(공고 종료일, YYYYMMDD) → 보호 마감 임박 표시에 사용
+                    "protect_end_date": _parse_yyyymmdd(it.get("noticeEdt")),
                 },
             }
         )

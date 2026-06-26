@@ -5,12 +5,24 @@
 - 강아지: (source=public_api, external_id=유기번호) 기준 upsert.
 멱등이므로 같은 데이터를 여러 번 동기화해도 중복이 생기지 않습니다.
 """
+from datetime import date
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.domain import DataSource, TransparencyLevel
 from app.integrations import public_data
 from app.models import Dog, Shelter
+
+
+def _to_date(value: str | None) -> date | None:
+    """ISO 'YYYY-MM-DD' 문자열 → date. 비거나 형식 오류면 None."""
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
 
 
 def _upsert_shelter(db: Session, data: dict) -> Shelter:
@@ -58,6 +70,7 @@ def _upsert_dog(db: Session, shelter_id: int, data: dict) -> bool:
     dog.adoption_status = data["adoption_status"]
     dog.thumbnail_url = data.get("thumbnail_url")
     dog.story = data.get("story")
+    dog.protect_end_date = _to_date(data.get("protect_end_date"))
     return created
 
 

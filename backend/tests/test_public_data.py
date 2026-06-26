@@ -30,6 +30,7 @@ def test_parse_maps_fields():
     assert first["dog"]["gender"] == "female"
     assert first["dog"]["is_neutered"] is True
     assert first["dog"]["adoption_status"] == AdoptionStatus.available  # 보호중
+    assert first["dog"]["protect_end_date"] == "2026-01-19"  # noticeEdt → ISO
 
     second = records[1]
     assert second["dog"]["adoption_status"] == AdoptionStatus.adopted   # 종료(입양)

@@ -32,6 +32,20 @@ def get_happy_endings(db: Session, limit: int = 12) -> list[dict]:
     return [_to_dict(d) for d in dogs]
 
 
+def get_urgent_dogs(db: Session, limit: int = 12) -> list[dict]:
+    """보호 마감일이 임박한 입양가능 강아지. 마감 빠른 순으로."""
+    dogs = db.scalars(
+        select(Dog)
+        .where(
+            Dog.adoption_status == AdoptionStatus.available,
+            Dog.protect_end_date.is_not(None),
+        )
+        .order_by(Dog.protect_end_date, Dog.id)
+        .limit(limit)
+    ).all()
+    return [_to_dict(d) for d in dogs]
+
+
 def get_dog(db: Session, dog_id: int) -> dict | None:
     dog = db.get(Dog, dog_id)
     return _to_dict(dog) if dog else None
@@ -71,4 +85,5 @@ def _to_dict(dog: Dog) -> dict:
         "shelter_name": dog.shelter.name if dog.shelter else "",
         "thumbnail_url": dog.thumbnail_url,
         "story": dog.story or "",
+        "protect_end_date": dog.protect_end_date,
     }
