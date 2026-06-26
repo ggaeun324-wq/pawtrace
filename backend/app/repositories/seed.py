@@ -42,6 +42,27 @@ DOGS = [
         "thumbnail_url": None,
         "story": "추운 겨울 공원에서 구조된 봄이는 지금은 누구보다 다정한 친구가 되었어요.",
     },
+    {
+        "id": 2, "name": "초코", "breed_label": "푸들(추정)", "breed_is_estimate": True,
+        "age_estimate": "추정 4살", "gender": "male", "is_neutered": True,
+        "adoption_status": AdoptionStatus.adopted, "shelter_id": 2,
+        "thumbnail_url": None,
+        "story": "오래 기다린 초코는 따뜻한 가족을 만나 매일 산책을 즐기고 있어요.",
+    },
+    {
+        "id": 3, "name": "보리", "breed_label": "진도믹스(추정)", "breed_is_estimate": True,
+        "age_estimate": "추정 3살", "gender": "female", "is_neutered": True,
+        "adoption_status": AdoptionStatus.adopted, "shelter_id": 3,
+        "thumbnail_url": None,
+        "story": "겁이 많던 보리는 새 가족의 사랑으로 활발한 강아지가 되었답니다.",
+    },
+    {
+        "id": 4, "name": "구름", "breed_label": "말티즈(추정)", "breed_is_estimate": True,
+        "age_estimate": "추정 5살", "gender": "male", "is_neutered": False,
+        "adoption_status": AdoptionStatus.adopted, "shelter_id": 1,
+        "thumbnail_url": None,
+        "story": "구름이는 입양 후 첫 생일파티를 하며 행복한 하루를 보냈어요.",
+    },
 ]
 
 PASSPORT_EVENTS = {
@@ -61,5 +82,29 @@ PASSPORT_EVENTS = {
         {"event_type": PassportEventType.available, "event_date": None,
          "title": "입양 가능", "memo": "평생 가족을 기다리고 있어요.",
          "source": DataSource.manual},
-    ]
+    ],
+    2: [
+        {"event_type": PassportEventType.intake, "event_date": "2025-11-02",
+         "title": "보호소 입소", "memo": "포근한쉼터에서 보호를 시작했어요.",
+         "source": DataSource.manual},
+        {"event_type": PassportEventType.adopted, "event_date": "2026-03-15",
+         "title": "입양 완료", "memo": "따뜻한 가족을 만나 행복하게 지내고 있어요.",
+         "source": DataSource.manual},
+    ],
+    3: [
+        {"event_type": PassportEventType.intake, "event_date": "2025-12-20",
+         "title": "보호소 입소", "memo": "함께걷개에서 보호를 시작했어요.",
+         "source": DataSource.manual},
+        {"event_type": PassportEventType.adopted, "event_date": "2026-04-01",
+         "title": "입양 완료", "memo": "새 가족과 매일 산책하며 지내요.",
+         "source": DataSource.manual},
+    ],
+    4: [
+        {"event_type": PassportEventType.intake, "event_date": "2025-10-05",
+         "title": "보호소 입소", "memo": "햇살보호소에서 보호를 시작했어요.",
+         "source": DataSource.manual},
+        {"event_type": PassportEventType.adopted, "event_date": "2026-02-28",
+         "title": "입양 완료", "memo": "첫 생일파티를 하며 가족이 되었어요.",
+         "source": DataSource.manual},
+    ],
 }

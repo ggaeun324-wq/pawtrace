@@ -21,6 +21,17 @@ def get_today_dog(db: Session) -> dict | None:
     return _to_dict(dog) if dog else None
 
 
+def get_happy_endings(db: Session, limit: int = 12) -> list[dict]:
+    """해피엔딩: 입양 완료(adopted) 강아지 목록. 최근 입양순(id 역순)."""
+    dogs = db.scalars(
+        select(Dog)
+        .where(Dog.adoption_status == AdoptionStatus.adopted)
+        .order_by(Dog.id.desc())
+        .limit(limit)
+    ).all()
+    return [_to_dict(d) for d in dogs]
+
+
 def get_dog(db: Session, dog_id: int) -> dict | None:
     dog = db.get(Dog, dog_id)
     return _to_dict(dog) if dog else None

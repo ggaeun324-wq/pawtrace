@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.dog import DogPassport, DogToday
+from app.schemas.dog import DogPassport, DogToday, HappyDog
 from app.services import dog_service
 
 router = APIRouter()
@@ -21,6 +21,12 @@ def today_dog(db: Annotated[Session, Depends(get_db)]):
     if not dog:
         raise HTTPException(status_code=404, detail="오늘의 친구가 아직 없어요")
     return dog
+
+
+@router.get("/happy-endings", response_model=list[HappyDog])
+def happy_endings(db: Annotated[Session, Depends(get_db)]):
+    """입양 완료된 강아지들의 해피엔딩 모음."""
+    return dog_service.get_happy_endings(db)
 
 
 @router.get("/{dog_id}/passport", response_model=DogPassport)

@@ -29,6 +29,11 @@ class DogToday(DogBase):
     story: str
 
 
+class HappyDog(DogBase):
+    """해피엔딩(입양 완료) 카드용. 따뜻한 스토리 포함."""
+    story: str
+
+
 class PassportEvent(BaseModel):
     event_type: PassportEventType
     event_date: date | None = None

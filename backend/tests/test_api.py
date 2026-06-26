@@ -32,3 +32,11 @@ def test_passport_timeline():
     r = client.get("/api/v1/dogs/1/passport")
     assert r.status_code == 200
     assert len(r.json()["events"]) >= 1
+
+
+def test_happy_endings_returns_adopted():
+    r = client.get("/api/v1/dogs/happy-endings")
+    assert r.status_code == 200
+    dogs = r.json()
+    assert len(dogs) >= 1
+    assert all(d["adoption_status"] == "adopted" for d in dogs)
