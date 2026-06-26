@@ -29,6 +29,12 @@ class Settings(BaseSettings):
 
     # 외부 연동 (값이 없으면 stub 모드로 동작)
     PUBLIC_DATA_API_KEY: str | None = None
+    # 농림축산검역본부 유기동물 조회 서비스(data.go.kr) 엔드포인트.
+    PUBLIC_DATA_BASE_URL: str = (
+        "https://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic"
+    )
+    # 주소→좌표 변환(지오코딩)용 카카오 REST 키. 없으면 좌표는 비워둡니다.
+    KAKAO_REST_API_KEY: str | None = None
     AWS_S3_BUCKET: str | None = None
     BEDROCK_MODEL_ID: str | None = None
 

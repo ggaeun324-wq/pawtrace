@@ -11,6 +11,8 @@
 """
 from datetime import date
 
+from sqlalchemy import text
+
 from app.core.config import settings
 from app.core.security import hash_password
 from app.db.session import SessionLocal
@@ -24,12 +26,30 @@ def _to_date(value: str | None) -> date | None:
     return date.fromisoformat(value) if value else None
 
 
+def _fix_sequences(db) -> None:
+    """명시적 id 로 시드한 뒤 시퀀스를 MAX(id)로 맞춥니다.
+
+    이유: PK 를 직접 지정해 INSERT 하면 SERIAL 시퀀스가 올라가지 않아,
+    이후 id 없이 INSERT(예: 공공데이터 동기화) 할 때 PK 충돌이 납니다.
+    """
+    for table in ("shelters", "dogs", "passport_events", "reports", "users"):
+        db.execute(
+            text(
+                "SELECT setval(pg_get_serial_sequence(:t, 'id'), "
+                "COALESCE((SELECT MAX(id) FROM " + table + "), 1))"
+            ),
+            {"t": table},
+        )
+    db.commit()
+
+
 def seed() -> None:
     db = SessionLocal()
     try:
         # 멱등 가드: 이미 보호소가 있으면 시드 생략.
         if db.query(Shelter).count() > 0:
             print("[seed] 이미 데이터가 존재하여 시드를 건너뜁니다.")
+            _fix_sequences(db)  # 재기동 시에도 시퀀스 정합성 보장
             return
 
         for s in seed_data_shelters():
@@ -40,6 +60,7 @@ def seed() -> None:
             db.add(e)
 
         db.commit()
+        _fix_sequences(db)
         print(
             f"[seed] 완료: 보호소 {len(seed_src.SHELTERS)} · "
             f"강아지 {len(seed_src.DOGS)} · "

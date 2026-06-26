@@ -1,0 +1,60 @@
+{
+  "response": {
+    "header": {
+      "reqNo": 0,
+      "resultCode": "00",
+      "resultMsg": "NORMAL SERVICE."
+    },
+    "body": {
+      "items": {
+        "item": [
+          {
+            "desertionNo": "448542202600001",
+            "happenDt": "20260108",
+            "happenPlace": "서울특별시 마포구 합정동",
+            "kindCd": "[개] 믹스견",
+            "colorCd": "갈색",
+            "age": "2024(년생)",
+            "weight": "5(Kg)",
+            "noticeNo": "서울-마포-2026-00001",
+            "noticeSdt": "20260109",
+            "noticeEdt": "20260119",
+            "popfile": "http://www.animal.go.kr/files/sample1.jpg",
+            "processState": "보호중",
+            "sexCd": "F",
+            "neuterYn": "Y",
+            "specialMark": "사람을 잘 따르고 온순합니다.",
+            "careNm": "행복보호소",
+            "careTel": "02-111-2222",
+            "careAddr": "서울특별시 마포구 월드컵로 100",
+            "orgNm": "서울특별시 마포구"
+          },
+          {
+            "desertionNo": "448542202600002",
+            "happenDt": "20251220",
+            "happenPlace": "경기도 성남시 분당구",
+            "kindCd": "[개] 푸들",
+            "colorCd": "흰색",
+            "age": "2022(년생)",
+            "weight": "4(Kg)",
+            "noticeNo": "경기-성남-2025-00450",
+            "noticeSdt": "20251221",
+            "noticeEdt": "20251231",
+            "popfile": "http://www.animal.go.kr/files/sample2.jpg",
+            "processState": "종료(입양)",
+            "sexCd": "M",
+            "neuterYn": "N",
+            "specialMark": "활발하고 산책을 좋아합니다.",
+            "careNm": "분당쉼터",
+            "careTel": "031-333-4444",
+            "careAddr": "경기도 성남시 분당구 정자로 50",
+            "orgNm": "경기도 성남시"
+          }
+        ]
+      },
+      "numOfRows": 50,
+      "pageNo": 1,
+      "totalCount": 2
+    }
+  }
+}
