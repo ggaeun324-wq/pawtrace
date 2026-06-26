@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 입양 후기</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<link href="style.css" rel="stylesheet" />
+<style>
+  .story-wrap{display:grid;grid-template-columns:340px 1fr;gap:26px;align-items:start;margin-top:8px}
+  .sphoto{border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);height:360px;position:relative;
+    background:linear-gradient(135deg,var(--peach),var(--mint));display:grid;place-items:center;font-size:96px}
+  .sphoto img{width:100%;height:100%;object-fit:cover}
+  .sphoto .done-badge{position:absolute;top:14px;left:14px;background:#fff;color:var(--coral-deep);
+    font-weight:800;font-size:13px;padding:7px 14px;border-radius:999px;box-shadow:var(--shadow-sm)}
+  .sinfo h1{font-size:32px;letter-spacing:-1px}
+  .sinfo .meta{color:var(--ink-soft);font-weight:600;margin-top:3px}
+  .review{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow-sm);
+    padding:24px 26px;margin-top:18px;position:relative}
+  .review .quote{font-size:46px;line-height:.6;color:var(--peach-deep);font-family:Georgia,serif}
+  .review h4{font-size:16px;margin:6px 0 8px;color:var(--coral-deep)}
+  .review p{font-size:16px;color:var(--ink);line-height:1.8}
+  .review .when{margin-top:12px;font-size:13px;font-weight:700;color:var(--ink-soft)}
+  .story-lead{font-size:16px;color:var(--ink);line-height:1.85;margin-top:14px}
+  @media(max-width:860px){.story-wrap{grid-template-columns:1fr}.sphoto{height:280px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+    <div class="navlinks">
+      <a href="index.html">오늘의 친구</a>
+      <a href="map.html">보호소 지도</a>
+      <a class="active" href="happyending.html">해피엔딩</a>
+      <a href="guide.html">입양 가이드</a>
+    </div>
+  </nav>
+
+  <a class="back" href="happyending.html">← 해피엔딩 목록으로</a>
+
+  <div class="story-wrap">
+    <div class="sphoto" id="sPhoto">
+      <span id="sEmoji">🐶</span>
+      <span class="done-badge">✓ 입양 완료</span>
+    </div>
+    <div class="sinfo">
+      <span class="badge"><span class="dot"></span> <span id="sShelter">보호소</span>에서 만난 가족</span>
+      <h1 style="margin-top:10px" id="sName">강아지</h1>
+      <div class="meta" id="sMeta"></div>
+      <p class="story-lead" id="sStory"></p>
+
+      <div class="review">
+        <div class="quote">“</div>
+        <h4>💌 입양 후기</h4>
+        <p id="sReview">이 아이는 새 가족과 함께 행복한 하루하루를 보내고 있어요.</p>
+        <div class="when" id="sWhen"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="note">⚖️ 입양 후기는 보호소·입양 가족이 공유한 내용을 바탕으로 하며, 출처를 함께 표시합니다.</div>
+  </footer>
+</div>
+
+<script src="api.js"></script>
+<script>
+  (async function () {
+    const { pawFetch, badge, dogMeta, fmtDate } = window.PawAPI;
+    const id = new URLSearchParams(location.search).get("id") || 2;
+    const EMOJI = ["🐶", "🐕", "🦮", "🐩"];
+    document.getElementById("sEmoji").textContent = EMOJI[(Number(id) || 0) % EMOJI.length];
+
+    badge("loading");
+    try {
+      const d = await pawFetch("/dogs/" + id + "/passport");
+
+      document.getElementById("sName").textContent = d.name;
+      document.getElementById("sMeta").textContent = dogMeta(d);
+      document.getElementById("sShelter").textContent = d.shelter_name || "보호소";
+      if (d.story) document.getElementById("sStory").textContent = d.story;
+      if (d.thumbnail_url) {
+        document.getElementById("sPhoto").innerHTML =
+          '<img src="' + d.thumbnail_url + '" onerror="this.remove()">' +
+          '<span class="done-badge">✓ 입양 완료</span>';
+      }
+
+      // '입양 완료' 이벤트를 후기로 사용
+      const adopted = (d.events || []).find((e) => e.event_type === "adopted");
+      if (adopted) {
+        if (adopted.memo) document.getElementById("sReview").textContent = adopted.memo;
+        document.getElementById("sWhen").textContent =
+          "입양 완료 · " + fmtDate(adopted.event_date);
+      }
+      badge("live");
+    } catch (e) {
+      badge("demo");
+    }
+  })();
+</script>
+</body>
+</html>

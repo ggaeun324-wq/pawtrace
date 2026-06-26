@@ -17,10 +17,13 @@ def create_app() -> FastAPI:
         description="PawTrace — Pet Life Transparency Platform API",
     )
 
-    # 프론트엔드(Next.js)에서의 호출 허용. 운영에서는 도메인을 좁힙니다.
+    # 프론트엔드에서의 호출 허용. 운영에서는 도메인을 좁힙니다.
+    # 로컬 개발은 localhost / 127.0.0.1 의 임의 포트를 정규식으로 허용합니다.
+    # (예: 프로토타입 8777, Next.js 3000 — 두 호스트명 모두 커버)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
+        allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
         allow_methods=["*"],
         allow_headers=["*"],
     )
