@@ -44,3 +44,21 @@ class UserRole(str, Enum):
     user = "user"
     shelter_staff = "shelter_staff"
     admin = "admin"
+
+
+class ApplicationStatus(str, Enum):
+    """입양 신청 상태.
+
+    원칙: 사람을 합격/불합격으로 '평가'하는 것이 아니라, 보호소 직원이
+    상담·진행 단계를 기록하는 '진행 상태'일 뿐입니다.
+    - submitted: 신청 접수됨
+    - reviewing: 보호소가 상담/검토 중
+    - meeting:   만남(방문) 단계
+    - matched:   입양 매칭 완료
+    - closed:    종료(보호소가 다른 방향으로 진행 등) — 비난/탈락 의미 아님
+    """
+    submitted = "submitted"
+    reviewing = "reviewing"
+    meeting = "meeting"
+    matched = "matched"
+    closed = "closed"

@@ -4,7 +4,7 @@
 """
 from fastapi import APIRouter
 
-from app.api.v1.routes import admin, auth, dogs, health, reports, shelters
+from app.api.v1.routes import academy, admin, auth, dogs, health, reports, shelters
 
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["health"])
@@ -13,3 +13,4 @@ api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 api_router.include_router(dogs.router, prefix="/dogs", tags=["dogs"])
 api_router.include_router(shelters.router, prefix="/shelters", tags=["shelters"])
 api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
+api_router.include_router(academy.router, prefix="/academy", tags=["academy"])

@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 import app.models  # noqa: F401  (메타데이터 등록)
 from app.db.session import Base, engine
-from scripts.seed_db import seed, seed_users
+from scripts.seed_db import seed, seed_academy, seed_relations, seed_users
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -27,4 +27,6 @@ def _ensure_db():
     Base.metadata.create_all(engine)
     seed()
     seed_users()
+    seed_relations()
+    seed_academy()
     yield

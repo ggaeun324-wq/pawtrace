@@ -192,6 +192,7 @@
   window.PawAPI = {
     API_BASE,
     pawFetch,
+    pawSend,
     badge,
     LABELS,
     dogMeta,

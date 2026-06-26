@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 아카데미</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --coral:#E8836A; --coral-deep:#D96E55; --mint:#CCE7DF;
+    --mint-deep:#9BCFC0; --sun:#F2DEAE; --lilac:#E2D5F1; --shadow:0 12px 28px rgba(200,140,110,.14);
+    --shadow-sm:0 6px 15px rgba(150,120,100,.10); --r:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px 60px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;text-decoration:none;color:var(--ink)}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .navlinks{display:flex;gap:8px}
+  .navlinks a{color:var(--ink-soft);text-decoration:none;font-weight:600;font-size:15px;
+       padding:9px 16px;border-radius:999px;transition:.2s}
+  .navlinks a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .navlinks a.active{background:var(--ink);color:#fff}
+  .head{text-align:center;margin:14px 0 26px}
+  .head .pill{display:inline-block;background:#fff;padding:6px 16px;border-radius:999px;
+       box-shadow:var(--shadow-sm);font-weight:800;color:var(--coral-deep);margin-bottom:12px}
+  .head h1{font-size:30px;font-weight:800;letter-spacing:-1px}
+  .head p{color:var(--ink-soft);font-weight:600;margin-top:4px}
+  section{margin-top:30px}
+  .sec-title{font-size:18px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .badges{display:flex;flex-wrap:wrap;gap:10px}
+  .mybadge{background:linear-gradient(135deg,var(--sun),#F6E6C0);color:#8a6d1f;font-weight:800;
+       font-size:13px;padding:10px 16px;border-radius:999px;box-shadow:var(--shadow-sm);
+       display:flex;align-items:center;gap:7px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}
+  .ccard{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;
+       transition:.2s;text-decoration:none;color:inherit;display:flex;flex-direction:column}
+  .ccard:hover{transform:translateY(-4px)}
+  .cphoto{height:120px;background:linear-gradient(135deg,var(--mint),var(--lilac));
+       display:grid;place-items:center;font-size:50px;position:relative}
+  .done-tag{position:absolute;top:12px;right:12px;background:#fff;color:#2f7d68;
+       font-weight:800;font-size:12px;padding:6px 11px;border-radius:999px;box-shadow:var(--shadow-sm)}
+  .cbody{padding:18px 20px;display:flex;flex-direction:column;flex:1}
+  .cbody h3{font-size:18px;font-weight:800}
+  .cbody .summary{font-size:14px;color:var(--ink-soft);margin:6px 0 14px;flex:1}
+  .cbody .meta{font-size:12.5px;color:var(--coral-deep);font-weight:700}
+  /* AI 자기 점검 카드 */
+  .reflect{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:26px}
+  .reflect h3{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .reflect p.desc{color:var(--ink-soft);font-size:14px;margin:6px 0 14px}
+  .reflect textarea{width:100%;min-height:90px;border:2px solid #F0E4DA;border-radius:16px;
+       padding:14px;font-family:inherit;font-size:14.5px;resize:vertical;color:var(--ink)}
+  .reflect textarea:focus{outline:none;border-color:var(--mint-deep)}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;
+       padding:13px 20px;border-radius:16px;transition:.18s transform;margin-top:12px}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--coral),var(--coral-deep));color:#fff;box-shadow:var(--shadow)}
+  .result{margin-top:18px;display:none}
+  .result.show{display:block}
+  .qlist{background:#F8F1EA;border-radius:16px;padding:16px 18px;margin-bottom:12px}
+  .qlist b{display:block;margin-bottom:8px;font-size:14px}
+  .qlist ul{margin:0;padding-left:18px}
+  .qlist li{font-size:14px;color:var(--ink);margin:5px 0}
+  .note{font-size:12.5px;color:var(--ink-soft);background:#FFF3EC;display:inline-block;
+       padding:8px 14px;border-radius:999px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+      <div class="navlinks">
+        <a href="index.html">오늘의 친구</a>
+        <a href="map.html">보호소 지도</a>
+        <a href="happyending.html">해피엔딩</a>
+        <a class="active" href="academy.html">아카데미</a>
+        <a href="guide.html">입양 가이드</a>
+      </div>
+    </nav>
+
+    <div class="head">
+      <span class="pill">🎓 PawTrace Academy</span>
+      <h1>책임 있는 입양, 함께 준비해요</h1>
+      <p>짧은 교육과 퀴즈로 입양 준비도를 스스로 점검해요. 수료하면 배지를 드려요 <span style="color:var(--coral)">♥</span></p>
+    </div>
+
+    <section id="badgeSection" style="display:none">
+      <div class="sec-title">🏅 내 수료 배지</div>
+      <div id="badges" class="badges"></div>
+    </section>
+
+    <section>
+      <div class="sec-title">📚 교육 과정</div>
+      <div id="grid" class="grid"></div>
+    </section>
+
+    <section>
+      <div class="reflect">
+        <h3>🤖 입양 전 자기 점검 (AI 보조)</h3>
+        <p class="desc">우리 집 상황과 계획을 적어주시면, <b>입양 전 생각해볼 질문과 준비사항</b>을 정리해 드려요.
+          AI는 강아지를 추천하거나 보호자를 평가하지 않아요.</p>
+        <textarea id="situation" placeholder="예) 아파트에 살고 직장에 다녀요. 강아지는 처음이라 잘 키울 수 있을지 고민돼요."></textarea>
+        <button class="btn btn-primary" id="reflectBtn">생각해볼 점 정리하기</button>
+        <div class="result" id="reflectResult"></div>
+      </div>
+    </section>
+  </div>
+
+<script src="api.js"></script>
+<script>
+  const { pawFetch, pawSend, badge, getUser } = window.PawAPI;
+  const grid = document.getElementById("grid");
+
+  // 백엔드 없이도 보이는 데모 과정
+  const DEMO = [
+    { id: 1, emoji: "🌱", title: "입양 전 마음가짐", summary: "입양은 10년 이상 함께하는 약속이에요.", question_count: 3 },
+    { id: 2, emoji: "🩺", title: "건강과 돌봄 기초", summary: "예방접종·중성화·정기검진의 기본을 익혀요.", question_count: 3 },
+    { id: 3, emoji: "🐾", title: "사회화와 적응", summary: "새 가족과 천천히 신뢰를 쌓는 방법.", question_count: 3 },
+  ];
+
+  let completedIds = new Set();
+
+  function render(courses) {
+    grid.innerHTML = courses
+      .map((c) => {
+        const done = completedIds.has(c.id);
+        const tag = done ? '<span class="done-tag">✓ 수료</span>' : "";
+        return `
+      <a class="ccard" href="academy-course.html?id=${c.id}">
+        <div class="cphoto">${c.emoji || "📘"}${tag}</div>
+        <div class="cbody">
+          <h3>${c.title}</h3>
+          <div class="summary">${c.summary}</div>
+          <div class="meta">퀴즈 ${c.question_count}문항 · 약 3분</div>
+        </div>
+      </a>`;
+      })
+      .join("");
+  }
+
+  async function loadBadges() {
+    if (!getUser()) return;
+    try {
+      const me = await pawSend("/academy/me", "GET", null, true);
+      completedIds = new Set(me.filter((m) => m.passed).map((m) => m.course_id));
+      const sec = document.getElementById("badgeSection");
+      const wrap = document.getElementById("badges");
+      const passed = me.filter((m) => m.passed);
+      if (passed.length) {
+        sec.style.display = "block";
+        wrap.innerHTML = passed
+          .map((m) => `<div class="mybadge">${m.emoji || "🎓"} ${m.course_title} 수료</div>`)
+          .join("");
+      }
+    } catch (e) {
+      /* 비로그인/오류 시 배지 생략 */
+    }
+  }
+
+  // 먼저 데모로 그린 뒤, 백엔드 성공 시 실제 데이터로 교체
+  render(DEMO);
+  badge("loading");
+  (async function () {
+    await loadBadges();
+    try {
+      const courses = await pawFetch("/academy/courses");
+      render(courses);
+      badge("live");
+    } catch (e) {
+      badge("demo");
+    }
+  })();
+
+  // AI 자기 점검
+  document.getElementById("reflectBtn").addEventListener("click", async () => {
+    const situation = document.getElementById("situation").value.trim();
+    const box = document.getElementById("reflectResult");
+    if (!situation) {
+      box.className = "result show";
+      box.innerHTML = '<div class="note">상황을 한두 문장 적어주세요 🐾</div>';
+      return;
+    }
+    box.className = "result show";
+    box.innerHTML = '<div class="note">정리하는 중이에요…</div>';
+    try {
+      const r = await pawSend("/academy/reflect", "POST", { situation }, false);
+      box.innerHTML =
+        `<div class="qlist"><b>💭 생각해볼 질문</b><ul>${r.questions
+          .map((q) => `<li>${q}</li>`)
+          .join("")}</ul></div>` +
+        `<div class="qlist"><b>✅ 준비 체크리스트</b><ul>${r.checklist
+          .map((c) => `<li>${c}</li>`)
+          .join("")}</ul></div>` +
+        `<div class="note">${r.note}</div>`;
+    } catch (e) {
+      box.innerHTML = '<div class="note">잠시 후 다시 시도해 주세요. (백엔드 연결 필요)</div>';
+    }
+  });
+</script>
+</body>
+</html>

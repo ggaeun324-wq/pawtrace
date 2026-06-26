@@ -9,12 +9,23 @@
 from datetime import date, datetime
 
 from geoalchemy2 import Geometry
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, String, func
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
 from app.domain import (
     AdoptionStatus,
+    ApplicationStatus,
     DataSource,
     PassportEventType,
     TransparencyLevel,
@@ -123,4 +134,100 @@ class User(Base):
     shelter_id: Mapped[int | None] = mapped_column(ForeignKey("shelters.id"))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class Adoption(Base):
+    """입양 관계 — '누가 어떤 강아지를 입양했는가'.
+
+    Family Journey(입양자만 작성)와 해피엔딩의 토대가 됩니다.
+    입양 신청(AdoptionApplication)이 matched 되면 보호소가 이 레코드를 생성합니다.
+    """
+
+    __tablename__ = "adoptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    dog_id: Mapped[int] = mapped_column(ForeignKey("dogs.id"), index=True)
+    adopted_at: Mapped[date | None] = mapped_column(Date)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped["User"] = relationship()
+    dog: Mapped["Dog"] = relationship()
+
+
+class AdoptionApplication(Base):
+    """입양 신청 — 사용자가 특정 강아지에 입양을 신청합니다.
+
+    보호소 직원이 신청자 목록(Shelter Applicant Review)에서 확인합니다.
+    status 는 '진행 단계'일 뿐, 사람을 합격/불합격으로 평가하지 않습니다.
+    """
+
+    __tablename__ = "adoption_applications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    dog_id: Mapped[int] = mapped_column(ForeignKey("dogs.id"), index=True)
+    status: Mapped[ApplicationStatus] = mapped_column(
+        default=ApplicationStatus.submitted
+    )
+    message: Mapped[str | None]  # 신청자가 남긴 한마디(선택)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped["User"] = relationship()
+    dog: Mapped["Dog"] = relationship()
+
+
+class Course(Base):
+    """PawTrace Academy 교육 과정.
+
+    책임 있는 입양을 준비하도록 돕는 콘텐츠 + 퀴즈. 강아지를 추천하지 않습니다.
+    """
+
+    __tablename__ = "courses"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    slug: Mapped[str] = mapped_column(String(60), unique=True, index=True)
+    title: Mapped[str] = mapped_column(String(120))
+    emoji: Mapped[str | None] = mapped_column(String(8))
+    summary: Mapped[str] = mapped_column(String(300))
+    content: Mapped[str]  # 교육 본문(여러 단락)
+    order_no: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    questions: Mapped[list["QuizQuestion"]] = relationship(
+        back_populates="course", order_by="QuizQuestion.order_no"
+    )
+
+
+class QuizQuestion(Base):
+    """교육 과정별 퀴즈 문항. 정답(answer_index)은 응답으로 노출하지 않습니다."""
+
+    __tablename__ = "quiz_questions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"), index=True)
+    order_no: Mapped[int] = mapped_column(Integer, default=0)
+    question: Mapped[str] = mapped_column(String(300))
+    options: Mapped[list] = mapped_column(JSON)  # 보기 문자열 배열
+    answer_index: Mapped[int] = mapped_column(Integer)
+    explanation: Mapped[str | None] = mapped_column(String(400))
+
+    course: Mapped["Course"] = relationship(back_populates="questions")
+
+
+class AcademyCompletion(Base):
+    """사용자별 교육 수료 기록(=수료 배지). (user, course) 당 1건."""
+
+    __tablename__ = "academy_completions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"), index=True)
+    score: Mapped[int] = mapped_column(Integer)        # 맞은 개수
+    total: Mapped[int] = mapped_column(Integer)        # 전체 문항 수
+    passed: Mapped[bool] = mapped_column(Boolean, default=False)
+    completed_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped["User"] = relationship()
+    course: Mapped["Course"] = relationship()
 

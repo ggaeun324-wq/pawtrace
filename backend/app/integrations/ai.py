@@ -18,3 +18,49 @@ def summarize(text: str) -> str:
 def classify_report(description: str) -> str:
     """신고 내용 분류. (stub)"""
     return "uncategorized"
+
+
+# 입양 전 자기 점검 보조에 쓰는 기본 질문/준비사항(가치판단 없는 중립 문구).
+_BASE_REFLECTION_QUESTIONS = [
+    "하루 중 강아지와 함께 있어줄 수 있는 시간은 어느 정도인가요?",
+    "산책, 식사, 배변 관리 등 매일의 돌봄을 누가 책임질 수 있나요?",
+    "예방접종·중성화·정기검진 등 의료 비용을 감당할 준비가 되어 있나요?",
+    "이사, 이직, 가족 구성 변화가 생겨도 함께할 수 있나요?",
+    "강아지가 아프거나 나이 들었을 때도 끝까지 함께할 수 있나요?",
+]
+_BASE_REFLECTION_CHECKLIST = [
+    "동물병원 위치와 예상 진료 비용 확인하기",
+    "한 달 양육 비용(사료·간식·용품·의료) 가볍게 계산해보기",
+    "강아지가 안전하게 지낼 공간 점검하기",
+    "가족 구성원 모두와 입양에 대해 이야기 나누기",
+]
+
+
+def adoption_reflection(situation: str) -> dict:
+    """입양 전 '생각해볼 질문 + 준비사항'을 정리합니다(추천 아님).
+
+    원칙:
+    - 특정 강아지/품종/보호소를 추천하지 않습니다.
+    - 사람을 '좋은/나쁜 보호자'로 평가하지 않습니다.
+    - 사용자가 적은 상황 키워드에 맞춰 점검 항목을 보태주는 보조 역할만 합니다.
+
+    Bedrock 키가 없으면 규칙 기반으로 동작합니다(데모/테스트 가능).
+    """
+    questions = list(_BASE_REFLECTION_QUESTIONS)
+    checklist = list(_BASE_REFLECTION_CHECKLIST)
+
+    # 상황 키워드별 추가 점검 항목(중립적 안내).
+    if any(k in situation for k in ("아파트", "빌라", "원룸", "오피스텔")):
+        questions.append("공동주택이라면 이웃·소음·반려동물 규정도 함께 살펴보셨나요?")
+    if any(k in situation for k in ("아이", "아기", "어린이", "유아")):
+        questions.append("어린 자녀와 강아지가 안전하게 지내도록 어떤 준비를 할 수 있을까요?")
+    if any(k in situation for k in ("직장", "출근", "회사", "야근", "혼자")):
+        questions.append("집을 비우는 시간 동안 강아지의 외로움·배변은 어떻게 도울 수 있을까요?")
+    if any(k in situation for k in ("처음", "초보", "경험 없")):
+        checklist.append("기본 교육·사회화 자료를 미리 읽어보기")
+
+    note = (
+        "이 정리는 참고용이에요. PawTrace는 강아지를 추천하거나 보호자를 평가하지 않아요. "
+        "스스로 준비 상태를 돌아보는 데 활용해 주세요."
+    )
+    return {"questions": questions, "checklist": checklist, "note": note}

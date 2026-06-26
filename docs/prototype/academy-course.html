@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 교육 과정</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --coral:#E8836A; --coral-deep:#D96E55; --mint:#CCE7DF;
+    --mint-deep:#9BCFC0; --sun:#F2DEAE; --lilac:#E2D5F1; --shadow:0 12px 28px rgba(200,140,110,.14);
+    --shadow-sm:0 6px 15px rgba(150,120,100,.10); --r:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+  .wrap{max-width:760px;margin:0 auto;padding:0 22px 60px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;text-decoration:none;color:var(--ink)}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .back{color:var(--ink-soft);text-decoration:none;font-weight:700;font-size:14px}
+  .back:hover{color:var(--ink)}
+  .hero{text-align:center;margin:10px 0 24px}
+  .hero .emoji{width:84px;height:84px;border-radius:26px;margin:0 auto 14px;display:grid;place-items:center;
+       font-size:42px;background:linear-gradient(135deg,var(--mint),var(--lilac));box-shadow:var(--shadow-sm)}
+  .hero h1{font-size:27px;font-weight:800;letter-spacing:-1px}
+  .hero p{color:var(--ink-soft);font-weight:600;margin-top:4px}
+  .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:26px 28px;margin-bottom:20px}
+  .content{white-space:pre-line;font-size:15.5px;color:var(--ink);line-height:1.85}
+  .quiz-title{font-size:18px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .quiz-sub{color:var(--ink-soft);font-size:14px;margin-bottom:18px}
+  .q{margin-bottom:22px}
+  .q .qtext{font-weight:700;font-size:15.5px;margin-bottom:10px}
+  .opt{display:block;background:#F8F1EA;border:2px solid transparent;border-radius:14px;
+       padding:12px 16px;margin-bottom:8px;cursor:pointer;font-size:14.5px;transition:.15s}
+  .opt:hover{background:#F2E7DC}
+  .opt input{margin-right:10px}
+  .opt.sel{border-color:var(--mint-deep);background:#EAF4EF}
+  .opt.correct{border-color:#7CC9A8;background:#E5F4EC}
+  .opt.wrong{border-color:#E8A09A;background:#FBEAE7}
+  .exp{font-size:13.5px;color:var(--ink-soft);margin-top:6px;padding-left:4px}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:16px;
+       padding:15px 20px;border-radius:18px;transition:.18s transform;width:100%}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--coral),var(--coral-deep));color:#fff;box-shadow:var(--shadow)}
+  .btn:disabled{opacity:.5;cursor:default;transform:none}
+  .result{text-align:center;display:none}
+  .result.show{display:block}
+  .result .ring{width:120px;height:120px;border-radius:50%;margin:6px auto 14px;display:grid;place-items:center;
+       font-size:34px;font-weight:800;color:#fff}
+  .result h2{font-size:22px;font-weight:800}
+  .result p{color:var(--ink-soft);font-weight:600;margin-top:4px}
+  .mybadge{background:linear-gradient(135deg,var(--sun),#F6E6C0);color:#8a6d1f;font-weight:800;
+       font-size:14px;padding:12px 20px;border-radius:999px;box-shadow:var(--shadow-sm);
+       display:inline-flex;align-items:center;gap:8px;margin-top:16px}
+  .hint{text-align:center;color:var(--ink-soft);font-size:14px;margin-top:10px}
+  .hint a{color:var(--coral-deep);font-weight:700}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+      <a class="back" href="academy.html">← 아카데미</a>
+    </nav>
+
+    <div class="hero">
+      <div class="emoji" id="emoji">📘</div>
+      <h1 id="title">교육 과정</h1>
+      <p id="summary"></p>
+    </div>
+
+    <div class="card">
+      <div class="content" id="content">불러오는 중…</div>
+    </div>
+
+    <div class="card" id="quizCard">
+      <div class="quiz-title">📝 이해도 퀴즈</div>
+      <div class="quiz-sub">정답 60% 이상이면 수료 배지를 받아요. 부담 갖지 말고 천천히 풀어보세요!</div>
+      <form id="quizForm"></form>
+      <button class="btn btn-primary" id="submitBtn" type="button">제출하고 채점하기</button>
+      <div class="hint" id="loginHint" style="display:none">
+        수료 기록을 저장하려면 <a href="login.html">로그인</a>이 필요해요.
+      </div>
+    </div>
+
+    <div class="card result" id="resultCard">
+      <div class="ring" id="ring"></div>
+      <h2 id="resultTitle"></h2>
+      <p id="resultDesc"></p>
+      <div id="badgeWrap"></div>
+      <button class="btn btn-primary" style="margin-top:18px" onclick="location.href='academy.html'">아카데미로 돌아가기</button>
+    </div>
+  </div>
+
+<script src="api.js"></script>
+<script>
+  const { pawFetch, pawSend, badge, getUser } = window.PawAPI;
+  const id = new URLSearchParams(location.search).get("id") || "1";
+  let course = null;
+
+  function renderQuiz(questions) {
+    const form = document.getElementById("quizForm");
+    form.innerHTML = questions
+      .map(
+        (q, qi) => `
+      <div class="q" data-qi="${qi}">
+        <div class="qtext">${qi + 1}. ${q.question}</div>
+        ${q.options
+          .map(
+            (opt, oi) => `
+          <label class="opt"><input type="radio" name="q${qi}" value="${oi}"> ${opt}</label>`
+          )
+          .join("")}
+        <div class="exp" style="display:none"></div>
+      </div>`
+      )
+      .join("");
+
+    // 선택 하이라이트
+    form.querySelectorAll(".opt input").forEach((inp) => {
+      inp.addEventListener("change", () => {
+        const q = inp.closest(".q");
+        q.querySelectorAll(".opt").forEach((l) => l.classList.remove("sel"));
+        inp.closest(".opt").classList.add("sel");
+      });
+    });
+  }
+
+  async function load() {
+    badge("loading");
+    try {
+      course = await pawFetch("/academy/courses/" + id);
+      badge("live");
+    } catch (e) {
+      badge("demo");
+      document.getElementById("content").textContent =
+        "백엔드에 연결되지 않아 교육 내용을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
+      document.getElementById("submitBtn").disabled = true;
+      return;
+    }
+    document.getElementById("emoji").textContent = course.emoji || "📘";
+    document.getElementById("title").textContent = course.title;
+    document.getElementById("summary").textContent = course.summary;
+    document.getElementById("content").textContent = course.content;
+    renderQuiz(course.questions);
+    if (!getUser()) document.getElementById("loginHint").style.display = "block";
+  }
+
+  document.getElementById("submitBtn").addEventListener("click", async () => {
+    if (!course) return;
+    const answers = [];
+    for (let i = 0; i < course.questions.length; i++) {
+      const sel = document.querySelector(`input[name="q${i}"]:checked`);
+      if (!sel) {
+        alert(`${i + 1}번 문항을 선택해 주세요 🐾`);
+        return;
+      }
+      answers.push(Number(sel.value));
+    }
+    if (!getUser()) {
+      if (confirm("수료 기록을 저장하려면 로그인이 필요해요. 로그인 페이지로 갈까요?")) {
+        location.href = "login.html";
+      }
+      return;
+    }
+
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.textContent = "채점 중…";
+    try {
+      const res = await pawSend("/academy/courses/" + id + "/submit", "POST", { answers }, true);
+      showResult(res);
+    } catch (e) {
+      alert("채점에 실패했어요: " + e.message);
+      btn.disabled = false;
+      btn.textContent = "제출하고 채점하기";
+    }
+  });
+
+  function showResult(res) {
+    // 문항별 정답/오답 표시
+    res.results.forEach((item, qi) => {
+      const q = document.querySelector(`.q[data-qi="${qi}"]`);
+      const opts = q.querySelectorAll(".opt");
+      const chosen = q.querySelector("input:checked");
+      opts.forEach((l, oi) => {
+        l.classList.remove("sel");
+        if (oi === item.answer_index) l.classList.add("correct");
+        if (chosen && Number(chosen.value) === oi && !item.correct) l.classList.add("wrong");
+        l.querySelector("input").disabled = true;
+      });
+      if (item.explanation) {
+        const exp = q.querySelector(".exp");
+        exp.style.display = "block";
+        exp.textContent = "💡 " + item.explanation;
+      }
+    });
+
+    document.getElementById("submitBtn").style.display = "none";
+    const card = document.getElementById("resultCard");
+    card.classList.add("show");
+    const ring = document.getElementById("ring");
+    ring.textContent = res.score + "/" + res.total;
+    ring.style.background = res.passed
+      ? "linear-gradient(135deg,#9BCFC0,#6FB89E)"
+      : "linear-gradient(135deg,#F3D2C0,#E8836A)";
+    if (res.passed) {
+      document.getElementById("resultTitle").textContent = "수료를 축하해요! 🎉";
+      document.getElementById("resultDesc").textContent =
+        "책임 있는 입양 준비에 한 걸음 더 가까워졌어요.";
+      document.getElementById("badgeWrap").innerHTML =
+        `<div class="mybadge">${course.emoji || "🎓"} ${course.title} 수료 배지 획득</div>`;
+    } else {
+      document.getElementById("resultTitle").textContent = "조금만 더! 💪";
+      document.getElementById("resultDesc").textContent =
+        "해설을 읽고 다시 도전하면 금방 수료할 수 있어요.";
+    }
+    card.scrollIntoView({ behavior: "smooth" });
+  }
+
+  load();
+</script>
+</body>
+</html>

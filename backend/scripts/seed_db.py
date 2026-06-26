@@ -16,8 +16,17 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.core.security import hash_password
 from app.db.session import SessionLocal
-from app.domain import UserRole
-from app.models import Dog, PassportEvent, Shelter, User
+from app.domain import ApplicationStatus, UserRole
+from app.models import (
+    Adoption,
+    AdoptionApplication,
+    Course,
+    Dog,
+    PassportEvent,
+    QuizQuestion,
+    Shelter,
+    User,
+)
 from app.repositories import seed as seed_src
 
 
@@ -32,7 +41,10 @@ def _fix_sequences(db) -> None:
     이유: PK 를 직접 지정해 INSERT 하면 SERIAL 시퀀스가 올라가지 않아,
     이후 id 없이 INSERT(예: 공공데이터 동기화) 할 때 PK 충돌이 납니다.
     """
-    for table in ("shelters", "dogs", "passport_events", "reports", "users"):
+    for table in (
+        "shelters", "dogs", "passport_events", "reports", "users",
+        "adoptions", "adoption_applications",
+    ):
         db.execute(
             text(
                 "SELECT setval(pg_get_serial_sequence(:t, 'id'), "
@@ -94,6 +106,13 @@ def seed_users() -> None:
                 "display_name": "행복 보호소 직원",
                 "role": UserRole.shelter_staff,
                 "shelter_id": 1,
+            },
+            {
+                "email": "adopter@pawtrace.dev",
+                "password": "adopter1234",
+                "display_name": "보리 가족",
+                "role": UserRole.user,
+                "shelter_id": None,
             },
         ]
         created = 0
@@ -180,7 +199,89 @@ def seed_data_events() -> list[PassportEvent]:
     return events
 
 
+def seed_relations() -> None:
+    """입양 관계/신청 데모 시드(멱등).
+
+    - 입양 완료(adopted) 강아지(초코=2)를 데모 입양자(adopter)와 연결 → Family Journey 토대.
+    - 입양 가능 강아지 몇 마리에 신청을 남겨 Shelter Applicant Review 화면에 데이터 제공.
+    이미 입양 레코드가 있으면 건너뜁니다.
+    """
+    db = SessionLocal()
+    try:
+        if db.query(Adoption).count() > 0:
+            return
+        adopter = db.query(User).filter(User.email == "adopter@pawtrace.dev").first()
+        if adopter is None:
+            return  # 데모 입양자 계정이 아직 없으면 생략(seed_users 선행 필요)
+
+        # 입양 관계: 초코(2)를 데모 입양자가 입양
+        if db.get(Dog, 2) is not None:
+            db.add(
+                Adoption(user_id=adopter.id, dog_id=2, adopted_at=date(2026, 3, 15))
+            )
+
+        # 입양 신청: 입양 가능 강아지(봄이=1, 두유=5)에 신청 데모
+        for dog_id, msg, st in (
+            (1, "마당이 있는 집에서 봄이와 함께 살고 싶어요.", ApplicationStatus.submitted),
+            (5, "이전에 반려견을 키운 경험이 있어요. 두유를 만나보고 싶어요.",
+             ApplicationStatus.reviewing),
+        ):
+            if db.get(Dog, dog_id) is not None:
+                db.add(
+                    AdoptionApplication(
+                        user_id=adopter.id, dog_id=dog_id, message=msg, status=st
+                    )
+                )
+        db.commit()
+        _fix_sequences(db)
+        print("[seed] 입양 관계/신청 데모 생성 완료.")
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+def seed_academy() -> None:
+    """PawTrace Academy 교육/퀴즈 시드(멱등). 이미 과정이 있으면 건너뜁니다."""
+    db = SessionLocal()
+    try:
+        if db.query(Course).count() > 0:
+            return
+        for c in seed_src.ACADEMY_COURSES:
+            course = Course(
+                slug=c["slug"],
+                title=c["title"],
+                emoji=c.get("emoji"),
+                summary=c["summary"],
+                content=c["content"],
+                order_no=c.get("order_no", 0),
+            )
+            db.add(course)
+            db.flush()  # course.id 확보
+            for i, q in enumerate(c["questions"]):
+                db.add(
+                    QuizQuestion(
+                        course_id=course.id,
+                        order_no=i,
+                        question=q["question"],
+                        options=q["options"],
+                        answer_index=q["answer_index"],
+                        explanation=q.get("explanation"),
+                    )
+                )
+        db.commit()
+        print(f"[seed] Academy 교육 {len(seed_src.ACADEMY_COURSES)}개 생성.")
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     seed()
     seed_users()
+    seed_relations()
+    seed_academy()
 
