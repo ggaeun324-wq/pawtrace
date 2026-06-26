@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 내 입양 준비</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --coral:#E8836A; --coral-deep:#D96E55; --mint:#CCE7DF;
+    --mint-deep:#9BCFC0; --sun:#F2DEAE; --lilac:#E2D5F1; --shadow:0 12px 28px rgba(200,140,110,.14);
+    --shadow-sm:0 6px 15px rgba(150,120,100,.10); --r:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+  .wrap{max-width:760px;margin:0 auto;padding:0 22px 60px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;text-decoration:none;color:var(--ink)}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .navlinks{display:flex;gap:8px;flex-wrap:wrap}
+  .navlinks a{color:var(--ink-soft);text-decoration:none;font-weight:600;font-size:15px;
+       padding:9px 16px;border-radius:999px;transition:.2s}
+  .navlinks a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .navlinks a.active{background:var(--ink);color:#fff}
+  .head{text-align:center;margin:14px 0 22px}
+  .head .pill{display:inline-block;background:#fff;padding:6px 16px;border-radius:999px;
+       box-shadow:var(--shadow-sm);font-weight:800;color:var(--coral-deep);margin-bottom:12px}
+  .head h1{font-size:28px;font-weight:800;letter-spacing:-1px}
+  .head p{color:var(--ink-soft);font-weight:600;margin-top:4px;font-size:14.5px}
+  .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:24px;margin-top:20px}
+  .card h2{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .card p.desc{color:var(--ink-soft);font-size:13.5px;margin-bottom:16px}
+  /* 준비도 요약 */
+  .summary-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .ring{--p:0;width:96px;height:96px;border-radius:50%;flex:0 0 auto;
+       background:conic-gradient(var(--mint-deep) calc(var(--p)*1%), #EFE6DD 0);
+       display:grid;place-items:center}
+  .ring .inner{width:74px;height:74px;border-radius:50%;background:#fff;display:grid;place-items:center;
+       font-weight:800;font-size:20px;color:var(--ink)}
+  .summary-facts{flex:1;min-width:200px}
+  .summary-facts .ai{background:#F3F8F6;border-radius:16px;padding:14px 16px;font-size:14px;color:#3f6b5e}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .chip{background:#FFF3EC;color:var(--coral-deep);font-weight:700;font-size:12.5px;
+       padding:7px 13px;border-radius:999px}
+  .chip.badge{background:linear-gradient(135deg,var(--sun),#F6E6C0);color:#8a6d1f}
+  /* 폼 */
+  label{display:block;font-weight:700;font-size:14px;margin:14px 0 6px}
+  input[type=text],textarea{width:100%;border:2px solid #F0E4DA;border-radius:14px;
+       padding:12px 14px;font-family:inherit;font-size:14.5px;color:var(--ink);background:#fff}
+  textarea{min-height:80px;resize:vertical}
+  input:focus,textarea:focus{outline:none;border-color:var(--mint-deep)}
+  .checks{display:grid;gap:10px;margin-top:6px}
+  .checkrow{display:flex;align-items:center;gap:12px;background:#F8F1EA;border-radius:14px;
+       padding:12px 16px;cursor:pointer;font-weight:600;font-size:14.5px}
+  .checkrow input{width:20px;height:20px;accent-color:var(--coral)}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;
+       padding:13px 22px;border-radius:16px;transition:.18s transform;margin-top:18px}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--coral),var(--coral-deep));color:#fff;box-shadow:var(--shadow)}
+  .toast{font-size:13px;color:#3f6b5e;background:#E3F1EB;display:none;padding:8px 14px;
+       border-radius:999px;margin-top:12px}
+  .toast.show{display:inline-block}
+  .privacy{font-size:12.5px;color:var(--ink-soft);background:#F3EEE8;border-radius:14px;
+       padding:12px 16px;margin-top:16px;line-height:1.5}
+  .guard{text-align:center;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+       padding:40px 24px;margin-top:30px}
+  .guard a{color:var(--coral-deep);font-weight:800;text-decoration:none}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+      <div class="navlinks">
+        <a href="index.html">오늘의 친구</a>
+        <a href="map.html">보호소 지도</a>
+        <a href="happyending.html">해피엔딩</a>
+        <a href="academy.html">아카데미</a>
+        <a class="active" href="profile.html">내 준비</a>
+        <a href="guide.html">입양 가이드</a>
+      </div>
+    </nav>
+
+    <div class="head">
+      <span class="pill">🧡 Trust Profile</span>
+      <h1>내 입양 준비를 정리해요</h1>
+      <p>입양은 점수가 아니에요. 준비 활동을 차근차근 기록하면, 보호소와 더 깊은 이야기를 나눌 수 있어요.</p>
+    </div>
+
+    <!-- 비로그인 안내 -->
+    <div class="guard" id="guard" style="display:none">
+      <div style="font-size:40px">🔑</div>
+      <h2 style="margin-top:10px">로그인이 필요해요</h2>
+      <p style="color:var(--ink-soft);margin:8px 0 4px">내 입양 준비는 본인만 보고 수정할 수 있어요.</p>
+      <a href="login.html">로그인 / 회원가입 하러 가기 →</a>
+    </div>
+
+    <div id="content" style="display:none">
+      <!-- 준비도 요약 -->
+      <div class="card">
+        <h2>🌈 나의 준비 현황</h2>
+        <p class="desc">아래 정보는 PawTrace가 점수로 판단하지 않아요. 객관적인 활동만 모아 보여드려요.</p>
+        <div class="summary-top">
+          <div class="ring" id="ring"><div class="inner" id="ringPct">0%</div></div>
+          <div class="summary-facts">
+            <div class="ai" id="aiSummary">불러오는 중이에요…</div>
+            <div class="chips" id="chips"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 프로필 폼 -->
+      <div class="card">
+        <h2>🏡 입양 준비 프로필</h2>
+        <p class="desc">우리 집과 생활을 알려주세요. 보호소가 우리 가족을 이해하는 데 도움이 돼요.</p>
+        <label>주거 형태</label>
+        <input type="text" id="housing_type" placeholder="예) 아파트 / 주택 / 마당 있음" />
+        <label>함께 사는 사람</label>
+        <input type="text" id="household" placeholder="예) 배우자와 둘이 거주" />
+        <label>반려 경험</label>
+        <input type="text" id="experience" placeholder="예) 어릴 때 강아지를 키운 경험이 있어요" />
+        <label>함께할 수 있는 시간</label>
+        <input type="text" id="daily_hours" placeholder="예) 하루 4시간 이상" />
+        <label>자기소개 / 입양 동기</label>
+        <textarea id="intro" placeholder="우리 가족이 어떤 마음으로 입양을 준비하는지 적어주세요."></textarea>
+        <button class="btn btn-primary" id="saveProfile">프로필 저장하기</button>
+        <span class="toast" id="profileToast">저장했어요 🐾</span>
+      </div>
+
+      <!-- 체크리스트 -->
+      <div class="card">
+        <h2>✅ 입양 준비 체크리스트</h2>
+        <p class="desc">준비가 된 항목을 체크해 주세요. 못 채운 항목이 있어도 괜찮아요 — 준비하는 과정이니까요.</p>
+        <div class="checks">
+          <label class="checkrow"><input type="checkbox" id="vet_info" /> 가까운 동물병원 정보를 확인했어요</label>
+          <label class="checkrow"><input type="checkbox" id="budget_ready" /> 양육에 필요한 비용을 점검했어요</label>
+          <label class="checkrow"><input type="checkbox" id="space_ready" /> 강아지가 지낼 생활 공간을 준비했어요</label>
+          <label class="checkrow"><input type="checkbox" id="family_agreed" /> 함께 사는 가족 모두 동의했어요</label>
+          <label class="checkrow"><input type="checkbox" id="time_committed" /> 매일 돌볼 시간을 확보했어요</label>
+        </div>
+        <button class="btn btn-primary" id="saveChecklist">체크리스트 저장하기</button>
+        <span class="toast" id="checklistToast">저장했어요 🐾</span>
+      </div>
+
+      <div class="privacy">
+        🔒 이 정보는 일반 사용자에게 공개되지 않아요. 입양을 신청하면 해당 보호소·관리자만
+        준비 현황을 참고용으로 확인할 수 있어요. PawTrace는 사람을 합격/불합격으로 판단하거나 점수화하지 않아요.
+      </div>
+    </div>
+  </div>
+
+<script src="api.js"></script>
+<script>
+  const { pawSend, getUser } = window.PawAPI;
+  const PROFILE_FIELDS = ["housing_type", "household", "experience", "daily_hours", "intro"];
+  const CHECK_FIELDS = ["vet_info", "budget_ready", "space_ready", "family_agreed", "time_committed"];
+
+  if (!getUser()) {
+    document.getElementById("guard").style.display = "block";
+  } else {
+    document.getElementById("content").style.display = "block";
+    init();
+  }
+
+  async function init() {
+    try {
+      const [profile, checklist] = await Promise.all([
+        pawSend("/trust/me/profile", "GET", null, true),
+        pawSend("/trust/me/checklist", "GET", null, true),
+      ]);
+      PROFILE_FIELDS.forEach((f) => (document.getElementById(f).value = profile[f] || ""));
+      CHECK_FIELDS.forEach((f) => (document.getElementById(f).checked = !!checklist[f]));
+    } catch (e) {
+      /* 처음이면 비어있는 폼으로 시작 */
+    }
+    await loadSummary();
+  }
+
+  async function loadSummary() {
+    try {
+      const t = await pawSend("/trust/me", "GET", null, true);
+      const pct = t.profile_completeness;
+      const ring = document.getElementById("ring");
+      ring.style.setProperty("--p", pct);
+      document.getElementById("ringPct").textContent = pct + "%";
+      document.getElementById("aiSummary").textContent = t.ai_summary;
+      const chips = [];
+      chips.push(`<span class="chip">가입 ${t.days_since_join}일째</span>`);
+      chips.push(`<span class="chip">체크리스트 ${t.checklist_completed}/${t.checklist_total}</span>`);
+      if (t.has_life_record) chips.push(`<span class="chip">반려생활 기록 중</span>`);
+      t.education_badges.forEach((b) =>
+        chips.push(`<span class="chip badge">${b.emoji || "🎓"} ${b.course_title} 수료</span>`)
+      );
+      document.getElementById("chips").innerHTML = chips.join("");
+    } catch (e) {
+      document.getElementById("aiSummary").textContent = "백엔드 연결이 필요해요.";
+    }
+  }
+
+  document.getElementById("saveProfile").addEventListener("click", async () => {
+    const body = {};
+    PROFILE_FIELDS.forEach((f) => (body[f] = document.getElementById(f).value.trim() || null));
+    try {
+      await pawSend("/trust/me/profile", "PUT", body, true);
+      flash("profileToast");
+      loadSummary();
+    } catch (e) {
+      alert("저장에 실패했어요: " + e.message);
+    }
+  });
+
+  document.getElementById("saveChecklist").addEventListener("click", async () => {
+    const body = {};
+    CHECK_FIELDS.forEach((f) => (body[f] = document.getElementById(f).checked));
+    try {
+      await pawSend("/trust/me/checklist", "PUT", body, true);
+      flash("checklistToast");
+      loadSummary();
+    } catch (e) {
+      alert("저장에 실패했어요: " + e.message);
+    }
+  });
+
+  function flash(id) {
+    const el = document.getElementById(id);
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 2000);
+  }
+</script>
+</body>
+</html>

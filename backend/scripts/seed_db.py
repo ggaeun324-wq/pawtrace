@@ -20,12 +20,14 @@ from app.domain import ApplicationStatus, UserRole
 from app.models import (
     Adoption,
     AdoptionApplication,
+    AdoptionChecklist,
     Course,
     Dog,
     PassportEvent,
     QuizQuestion,
     Shelter,
     User,
+    UserProfile,
 )
 from app.repositories import seed as seed_src
 
@@ -44,6 +46,7 @@ def _fix_sequences(db) -> None:
     for table in (
         "shelters", "dogs", "passport_events", "reports", "users",
         "adoptions", "adoption_applications",
+        "user_profiles", "adoption_checklists",
     ):
         db.execute(
             text(
@@ -279,9 +282,54 @@ def seed_academy() -> None:
         db.close()
 
 
+def seed_profiles() -> None:
+    """Trust Profile 데모 시드(멱등).
+
+    데모 입양자(adopter)에게 '부분 작성' 프로필과 체크리스트 일부 완료 상태를 부여해
+    보호소/관리자 화면에서 Trust Profile 이 의미 있게 보이도록 합니다.
+    이미 프로필이 있으면 건너뜁니다.
+    """
+    db = SessionLocal()
+    try:
+        if db.query(UserProfile).count() > 0:
+            return
+        adopter = db.query(User).filter(User.email == "adopter@pawtrace.dev").first()
+        if adopter is None:
+            return
+        db.add(
+            UserProfile(
+                user_id=adopter.id,
+                housing_type="아파트",
+                household="배우자와 둘이 거주",
+                experience="어릴 때 강아지를 키운 경험이 있어요.",
+                daily_hours="하루 4시간 이상",
+                intro=None,  # 일부 미작성 → 작성률 80%
+            )
+        )
+        db.add(
+            AdoptionChecklist(
+                user_id=adopter.id,
+                vet_info=True,
+                budget_ready=True,
+                space_ready=True,
+                family_agreed=True,
+                time_committed=False,  # 4/5 완료
+            )
+        )
+        db.commit()
+        _fix_sequences(db)
+        print("[seed] Trust Profile 데모(프로필+체크리스트) 생성 완료.")
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     seed()
     seed_users()
     seed_relations()
     seed_academy()
+    seed_profiles()
 

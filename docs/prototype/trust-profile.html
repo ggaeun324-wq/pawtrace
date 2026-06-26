@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 신청자 준비 현황</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --coral:#E8836A; --coral-deep:#D96E55; --mint:#CCE7DF;
+    --mint-deep:#9BCFC0; --sun:#F2DEAE; --lilac:#E2D5F1; --shadow:0 12px 28px rgba(200,140,110,.14);
+    --shadow-sm:0 6px 15px rgba(150,120,100,.10); --r:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+  .wrap{max-width:720px;margin:0 auto;padding:0 22px 60px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;text-decoration:none;color:var(--ink)}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .back{color:var(--ink-soft);text-decoration:none;font-weight:700;font-size:14px;
+       padding:9px 16px;border-radius:999px;background:#fff;box-shadow:var(--shadow-sm)}
+  .staff-tag{display:inline-block;background:var(--lilac);color:#6b4ea3;font-weight:800;
+       font-size:12px;padding:6px 14px;border-radius:999px;margin-bottom:10px}
+  .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:26px;margin-top:18px}
+  .person{display:flex;align-items:center;gap:16px}
+  .avatar{width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,var(--mint),var(--lilac));
+       display:grid;place-items:center;font-size:30px;flex:0 0 auto}
+  .person h1{font-size:22px;font-weight:800}
+  .person .sub{color:var(--ink-soft);font-size:13.5px;font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+  .stat{background:#F8F1EA;border-radius:18px;padding:16px 18px}
+  .stat .k{font-size:12.5px;color:var(--ink-soft);font-weight:700}
+  .stat .v{font-size:22px;font-weight:800;margin-top:2px}
+  .stat .v small{font-size:13px;color:var(--ink-soft);font-weight:700}
+  .section-t{font-size:15px;font-weight:800;margin:22px 0 10px;display:flex;align-items:center;gap:7px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px}
+  .badge{background:linear-gradient(135deg,var(--sun),#F6E6C0);color:#8a6d1f;font-weight:800;
+       font-size:12.5px;padding:8px 14px;border-radius:999px}
+  .empty{color:var(--ink-soft);font-size:13.5px}
+  .checklist{display:grid;gap:8px}
+  .crow{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
+  .crow .mark{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:13px;flex:0 0 auto}
+  .crow .on{background:var(--mint);color:#2f7d68}
+  .crow .off{background:#EFE6DD;color:#b6a99e}
+  .ai{background:#F3F0F8;border-radius:18px;padding:16px 18px;font-size:14px;color:#5b4a78;margin-top:8px}
+  .notice{font-size:12.8px;color:var(--ink-soft);background:#FFF6EE;border:1px dashed #EAD7C6;
+       border-radius:16px;padding:14px 16px;margin-top:18px;line-height:1.55}
+  .guard{text-align:center;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+       padding:44px 24px;margin-top:30px}
+  .guard a{color:var(--coral-deep);font-weight:800;text-decoration:none}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+      <a class="back" href="shelter-applicants.html">← 신청자 목록</a>
+    </nav>
+
+    <div id="guard" class="guard" style="display:none">
+      <div style="font-size:40px">🔒</div>
+      <h2 style="margin-top:10px">보호소 직원 전용 화면이에요</h2>
+      <p style="color:var(--ink-soft);margin:8px 0 4px" id="guardMsg">보호소/관리자 계정으로 로그인해 주세요.</p>
+      <a href="login.html">로그인 하러 가기 →</a>
+    </div>
+
+    <div id="content" style="display:none">
+      <span class="staff-tag">🗂️ 보호소 직원 전용 · 참고용</span>
+      <div class="card">
+        <div class="person">
+          <div class="avatar">🧑</div>
+          <div>
+            <h1 id="name">—</h1>
+            <div class="sub" id="sub">—</div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="stat"><div class="k">프로필 작성률</div><div class="v" id="completeness">—</div></div>
+          <div class="stat"><div class="k">체크리스트</div><div class="v" id="checklist">—</div></div>
+          <div class="stat"><div class="k">교육 수료</div><div class="v" id="eduCount">—</div></div>
+          <div class="stat"><div class="k">입양 진행</div><div class="v" id="adoptCount">—</div></div>
+        </div>
+
+        <div class="section-t">🏅 수료 배지</div>
+        <div class="badges" id="badges"><span class="empty">아직 수료한 교육이 없어요.</span></div>
+
+        <div class="section-t">✅ 준비 체크리스트</div>
+        <div class="checklist" id="checks"></div>
+
+        <div class="section-t">🤖 활동 요약 (AI · 평가 아님)</div>
+        <div class="ai" id="aiSummary">—</div>
+
+        <div class="notice">
+          이 화면은 신청자의 <b>준비 활동을 객관적으로</b> 모아 보여줄 뿐, 합격/불합격을 판단하지 않아요.
+          최종 입양 결정은 <b>보호소 직원의 상담과 판단</b>으로 이뤄져야 해요. PawTrace의 AI는 추천/비추천을 하지 않아요.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="api.js"></script>
+<script>
+  const { pawSend, getUser } = window.PawAPI;
+  const CHECK_LABELS = {
+    vet_info: "동물병원 정보 확인",
+    budget_ready: "양육 비용 점검",
+    space_ready: "생활 공간 준비",
+    family_agreed: "가족 동의",
+    time_committed: "돌봄 시간 확보",
+  };
+
+  const params = new URLSearchParams(location.search);
+  const userId = params.get("user_id");
+  const u = getUser();
+
+  if (!u || (u.role !== "shelter_staff" && u.role !== "admin")) {
+    document.getElementById("guard").style.display = "block";
+  } else if (!userId) {
+    document.getElementById("guard").style.display = "block";
+    document.getElementById("guardMsg").textContent = "조회할 신청자를 신청자 목록에서 선택해 주세요.";
+  } else {
+    document.getElementById("content").style.display = "block";
+    load();
+  }
+
+  async function load() {
+    try {
+      const t = await pawSend("/trust/users/" + userId, "GET", null, true);
+      document.getElementById("name").textContent = t.display_name;
+      document.getElementById("sub").textContent =
+        "가입 " + t.days_since_join + "일째 · 신청자 ID #" + t.user_id;
+      document.getElementById("completeness").innerHTML = t.profile_completeness + "<small>%</small>";
+      document.getElementById("checklist").innerHTML =
+        t.checklist_completed + "<small> / " + t.checklist_total + "</small>";
+      document.getElementById("eduCount").innerHTML =
+        t.education_badges.length + "<small>개</small>";
+      document.getElementById("adoptCount").innerHTML =
+        t.adopted_count + "<small>건</small>";
+
+      if (t.education_badges.length) {
+        document.getElementById("badges").innerHTML = t.education_badges
+          .map((b) => `<span class="badge">${b.emoji || "🎓"} ${b.course_title}</span>`)
+          .join("");
+      }
+
+      // 체크리스트는 본인 입력 항목을 직원이 참고할 수 있게 별도 조회가 없으므로,
+      // 완료 개수만 표시하고 항목별 상태는 trust 요약 범위 내에서 생략합니다.
+      const done = t.checklist_completed;
+      const total = t.checklist_total;
+      const keys = Object.keys(CHECK_LABELS);
+      document.getElementById("checks").innerHTML = keys
+        .map((k, i) => {
+          const on = i < done; // 표시는 완료 개수 기준(순서 무관 요약)
+          return `<div class="crow"><span class="mark ${on ? "on" : "off"}">${on ? "✓" : "·"}</span>${CHECK_LABELS[k]}</div>`;
+        })
+        .join("") +
+        `<div class="empty" style="margin-top:6px">총 ${total}개 중 ${done}개 완료(참고용 요약)</div>`;
+
+      document.getElementById("aiSummary").textContent = t.ai_summary;
+    } catch (e) {
+      document.getElementById("aiSummary").textContent =
+        "불러오지 못했어요: " + e.message;
+    }
+  }
+</script>
+</body>
+</html>

@@ -64,3 +64,37 @@ def adoption_reflection(situation: str) -> dict:
         "스스로 준비 상태를 돌아보는 데 활용해 주세요."
     )
     return {"questions": questions, "checklist": checklist, "note": note}
+
+
+def trust_summary(facts: dict) -> str:
+    """입양 준비 활동을 '객관적으로' 요약합니다(평가 아님).
+
+    원칙:
+    - '좋은/나쁜 보호자' 같은 가치판단 표현을 쓰지 않습니다.
+    - 사실(가입 기간, 교육 수료 수, 체크리스트 진행, 프로필 작성률)만 나열합니다.
+    - 최종 판단은 보호소 직원의 몫임을 명시합니다.
+
+    Bedrock 키가 없으면 규칙 기반 문장으로 동작합니다.
+    """
+    parts: list[str] = []
+    days = facts.get("days_since_join", 0)
+    parts.append(f"가입 후 약 {days}일째 활동 중이에요.")
+
+    badges = facts.get("education_count", 0)
+    if badges:
+        parts.append(f"교육 과정 {badges}개를 수료했어요.")
+    else:
+        parts.append("아직 수료한 교육 과정은 없어요.")
+
+    done = facts.get("checklist_completed", 0)
+    total = facts.get("checklist_total", 5)
+    parts.append(f"입양 준비 체크리스트는 {total}개 중 {done}개를 완료했어요.")
+
+    comp = facts.get("profile_completeness", 0)
+    parts.append(f"프로필은 {comp}% 작성되어 있어요.")
+
+    if facts.get("has_life_record"):
+        parts.append("입양 후 반려생활 기록도 남기고 있어요.")
+
+    parts.append("이 요약은 참고용 활동 정리이며, 최종 판단은 보호소에서 해주세요.")
+    return " ".join(parts)

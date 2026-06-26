@@ -231,3 +231,52 @@ class AcademyCompletion(Base):
     user: Mapped["User"] = relationship()
     course: Mapped["Course"] = relationship()
 
+
+class UserProfile(Base):
+    """사용자 입양 준비 프로필 (사용자 본인이 작성).
+
+    민감 정보가 아니라 '입양 준비 활동'을 정리하는 용도입니다.
+    보호소/관리자는 Trust Profile 형태로 열람하지만, 사람을 점수화하지 않습니다.
+    """
+
+    __tablename__ = "user_profiles"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), unique=True, index=True
+    )
+    housing_type: Mapped[str | None] = mapped_column(String(40))   # 주거 형태
+    household: Mapped[str | None] = mapped_column(String(120))     # 함께 사는 사람
+    experience: Mapped[str | None] = mapped_column(String(300))    # 반려 경험
+    daily_hours: Mapped[str | None] = mapped_column(String(40))    # 함께할 수 있는 시간
+    intro: Mapped[str | None]                                      # 자기소개/동기
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+    user: Mapped["User"] = relationship()
+
+
+class AdoptionChecklist(Base):
+    """입양 준비 체크리스트 (사용자 본인이 체크).
+
+    각 항목은 '준비 활동'일 뿐 합격/불합격 기준이 아닙니다.
+    """
+
+    __tablename__ = "adoption_checklists"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), unique=True, index=True
+    )
+    vet_info: Mapped[bool] = mapped_column(Boolean, default=False)      # 동물병원 정보 확인
+    budget_ready: Mapped[bool] = mapped_column(Boolean, default=False)  # 양육 비용 점검
+    space_ready: Mapped[bool] = mapped_column(Boolean, default=False)   # 생활 공간 점검
+    family_agreed: Mapped[bool] = mapped_column(Boolean, default=False) # 가족 동의
+    time_committed: Mapped[bool] = mapped_column(Boolean, default=False) # 돌봄 시간 확보
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+    user: Mapped["User"] = relationship()
+
