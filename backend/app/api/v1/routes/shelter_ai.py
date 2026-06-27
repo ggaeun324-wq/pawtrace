@@ -16,8 +16,9 @@ from app.core.security import require_role
 from app.db.session import get_db
 from app.domain import UserRole
 from app.models import User
+from app.schemas.applicant import ApplicantSummary
 from app.schemas.shelter_ai import DogCreateIn, DogDraft, DogOut
-from app.services import shelter_ai_service
+from app.services import applicant_service, shelter_ai_service
 
 router = APIRouter()
 
@@ -61,3 +62,16 @@ def list_dogs(
 ):
     """담당 보호소(또는 admin 이 지정한 보호소)의 강아지 목록."""
     return shelter_ai_service.list_shelter_dogs(db, staff, shelter_id)
+
+
+@router.get("/applicants", response_model=list[ApplicantSummary])
+def list_applicants(
+    staff: StaffUser,
+    db: Annotated[Session, Depends(get_db)],
+    shelter_id: int | None = None,
+):
+    """입양 신청자 목록 + 각 신청자의 객관적 준비 활동(Trust Profile) 요약.
+
+    AI 는 추천/비추천을 하지 않습니다. 최종 판단은 보호소 직원이 합니다.
+    """
+    return applicant_service.list_applicants(db, staff, shelter_id)
