@@ -89,7 +89,7 @@
     <div class="head">
       <span class="pill">🎓 PawTrace Academy</span>
       <h1>책임 있는 입양, 함께 준비해요</h1>
-      <p>짧은 교육과 퀴즈로 입양 준비도를 스스로 점검해요. 수료하면 배지를 드려요 <span style="color:var(--coral)">♥</span></p>
+      <p>짧은 교육 콘텐츠로 입양 준비도를 스스로 점검해요. 끝까지 읽으면 수료 배지를 드려요 <span style="color:var(--coral)">♥</span></p>
     </div>
 
     <section id="badgeSection" style="display:none">
@@ -121,9 +121,9 @@
 
   // 백엔드 없이도 보이는 데모 과정
   const DEMO = [
-    { id: 1, emoji: "🌱", title: "입양 전 마음가짐", summary: "입양은 10년 이상 함께하는 약속이에요.", question_count: 3 },
-    { id: 2, emoji: "🩺", title: "건강과 돌봄 기초", summary: "예방접종·중성화·정기검진의 기본을 익혀요.", question_count: 3 },
-    { id: 3, emoji: "🐾", title: "사회화와 적응", summary: "새 가족과 천천히 신뢰를 쌓는 방법.", question_count: 3 },
+    { id: 1, emoji: "🌱", title: "입양 전 마음가짐", summary: "입양은 10년 이상 함께하는 약속이에요." },
+    { id: 2, emoji: "🩺", title: "건강과 돌봄 기초", summary: "예방접종·중성화·정기검진의 기본을 익혀요." },
+    { id: 3, emoji: "🐾", title: "사회화와 적응", summary: "새 가족과 천천히 신뢰를 쌓는 방법." },
   ];
 
   let completedIds = new Set();
@@ -139,7 +139,7 @@
         <div class="cbody">
           <h3>${c.title}</h3>
           <div class="summary">${c.summary}</div>
-          <div class="meta">퀴즈 ${c.question_count}문항 · 약 3분</div>
+          <div class="meta">약 3분 · 읽고 수료 🎓</div>
         </div>
       </a>`;
       })

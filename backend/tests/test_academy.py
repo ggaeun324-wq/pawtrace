@@ -1,4 +1,4 @@
-"""PawTrace Academy 테스트 (교육/퀴즈/수료/AI 보조)."""
+"""PawTrace Academy 테스트 (교육 콘텐츠/수료/AI 보조). 퀴즈 없음."""
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -18,19 +18,19 @@ def test_list_courses():
     assert r.status_code == 200
     courses = r.json()
     assert len(courses) >= 3
-    assert all(c["question_count"] >= 1 for c in courses)
+    # 퀴즈를 제거했으므로 question_count 필드는 더 이상 노출되지 않음
+    assert all("question_count" not in c for c in courses)
+    assert all(c["title"] and c["summary"] for c in courses)
 
 
-def test_course_detail_hides_answers():
+def test_course_detail_is_reading_content_without_quiz():
     r = client.get("/api/v1/academy/courses/1")
     assert r.status_code == 200
     body = r.json()
-    assert "content" in body
-    assert len(body["questions"]) >= 1
-    # 정답 필드가 상세 응답에 노출되면 안 됨
-    for q in body["questions"]:
-        assert "answer_index" not in q
-        assert "options" in q
+    assert body["content"]
+    # 퀴즈/정답 관련 필드가 응답에 없어야 함
+    assert "questions" not in body
+    assert "answer_index" not in body
 
 
 def test_reflect_returns_questions_without_recommendation():
@@ -46,35 +46,28 @@ def test_reflect_returns_questions_without_recommendation():
     assert "추천" in body["note"]
 
 
-def test_submit_requires_auth():
-    r = client.post("/api/v1/academy/courses/1/submit", json={"answers": [0, 0, 0]})
+def test_complete_requires_auth():
+    r = client.post("/api/v1/academy/courses/1/complete")
     assert r.status_code == 401
 
 
-def test_submit_grades_and_creates_badge():
+def test_complete_creates_badge():
     tok = _adopter_token()
     h = {"Authorization": f"Bearer {tok}"}
-    # course 1 정답: 2,2,1
-    r = client.post(
-        "/api/v1/academy/courses/1/submit", json={"answers": [2, 2, 1]}, headers=h
-    )
+    r = client.post("/api/v1/academy/courses/1/complete", headers=h)
     assert r.status_code == 200
     body = r.json()
-    assert body["score"] == 3
-    assert body["total"] == 3
+    assert body["course_id"] == 1
     assert body["passed"] is True
-    # 채점 결과에는 정답/해설 공개
-    assert all("answer_index" in item for item in body["results"])
 
     # 수료 배지가 /me 에 반영
     me = client.get("/api/v1/academy/me", headers=h).json()
     assert any(c["course_id"] == 1 and c["passed"] for c in me)
 
 
-def test_submit_wrong_answer_count_400():
+def test_complete_unknown_course_404():
     tok = _adopter_token()
     h = {"Authorization": f"Bearer {tok}"}
-    r = client.post(
-        "/api/v1/academy/courses/1/submit", json={"answers": [0]}, headers=h
-    )
-    assert r.status_code == 400
+    r = client.post("/api/v1/academy/courses/9999/complete", headers=h)
+    assert r.status_code == 404
+

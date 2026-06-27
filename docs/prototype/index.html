@@ -36,10 +36,18 @@
        font-weight:800;color:var(--coral-deep);margin-bottom:14px;font-size:15px}
   .friend-label .pill{background:#fff;padding:6px 14px;border-radius:999px;box-shadow:var(--shadow-sm)}
   .urgent-note{text-align:center;color:var(--ink-soft);font-weight:600;font-size:14px;margin:-4px 0 18px}
+  .carousel{position:relative;display:flex;align-items:center;gap:8px}
   .rail{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;
-       padding:4px 4px 16px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
-  .rail::-webkit-scrollbar{height:8px}
-  .rail::-webkit-scrollbar-thumb{background:var(--peach-deep);border-radius:99px}
+       padding:4px 4px 16px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;flex:1;
+       scrollbar-width:none}
+  .rail::-webkit-scrollbar{display:none}
+  .arrow{flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;
+       background:#fff;color:var(--coral-deep);font-size:24px;font-weight:800;line-height:1;
+       box-shadow:var(--shadow);transition:.18s transform,.18s opacity;display:grid;place-items:center;
+       z-index:3}
+  .arrow:hover{transform:scale(1.08)}
+  .arrow:disabled{opacity:.35;cursor:default;transform:none}
+  @media(max-width:560px){.arrow{width:40px;height:40px;font-size:20px}}
   .ucard{scroll-snap-align:start;flex:0 0 270px;background:var(--card);border-radius:var(--r);
        box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
   .uphoto{position:relative;height:190px;background:linear-gradient(135deg,var(--peach),var(--mint))}
@@ -135,22 +143,65 @@
   </div>
 
   <div class="friend-label"><span class="pill">⏰ 지금 가족이 필요한 아이들</span></div>
-  <p class="urgent-note" id="urgentNote">보호 공고 마감이 가까워, 새로운 가족의 손길을 기다리는 친구들이에요. 옆으로 넘겨 만나보세요 →</p>
+  <p class="urgent-note" id="urgentNote">보호 공고 마감이 가까워, 새로운 가족의 손길을 기다리는 친구들이에요. 화살표로 넘겨 만나보세요</p>
 
-  <div class="rail" id="urgentRail">
-    <div class="ucard">
-      <div class="uphoto">
-        <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=700&q=80"
-             alt="강아지" onerror="this.style.display='none'"/>
-        <div class="dday" style="background:#FF6B6B">보호 마감 D-3</div>
+  <div class="carousel">
+    <button class="arrow" id="urgentPrev" aria-label="이전">‹</button>
+    <div class="rail" id="urgentRail">
+      <div class="ucard">
+        <div class="uphoto">
+          <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=700&q=80"
+               alt="강아지" onerror="this.style.display='none'"/>
+          <div class="dday" style="background:#FF6B6B">보호 마감 D-3</div>
+        </div>
+        <div class="ubody">
+          <b>봄이</b>
+          <span class="umeta">추정 2살 · 믹스(추정) · 여아</span>
+          <p class="ustory">추운 겨울 공원에서 구조된 봄이가 새로운 가족을 기다리고 있어요.</p>
+          <a class="btn btn-primary" href="passport.html?dog=1" style="text-decoration:none;text-align:center;display:block">📖 이야기 보기</a>
+        </div>
       </div>
-      <div class="ubody">
-        <b>봄이</b>
-        <span class="umeta">추정 2살 · 믹스(추정) · 여아</span>
-        <p class="ustory">추운 겨울 공원에서 구조된 봄이가 새로운 가족을 기다리고 있어요.</p>
-        <a class="btn btn-primary" href="passport.html?dog=1" style="text-decoration:none;text-align:center;display:block">📖 이야기 보기</a>
+      <div class="ucard">
+        <div class="uphoto">
+          <img src="https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=700&q=80"
+               alt="강아지" onerror="this.style.display='none'"/>
+          <div class="dday" style="background:#F5A623">보호 마감 D-5</div>
+        </div>
+        <div class="ubody">
+          <b>두유</b>
+          <span class="umeta">추정 1살 · 비글믹스(추정) · 남아</span>
+          <p class="ustory">사람을 좋아하는 활발한 두유, 따뜻한 가족 품을 기다려요.</p>
+          <a class="btn btn-primary" href="passport.html?dog=5" style="text-decoration:none;text-align:center;display:block">📖 이야기 보기</a>
+        </div>
+      </div>
+      <div class="ucard">
+        <div class="uphoto">
+          <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=700&q=80"
+               alt="강아지" onerror="this.style.display='none'"/>
+          <div class="dday" style="background:#F5A623">보호 마감 D-6</div>
+        </div>
+        <div class="ubody">
+          <b>몽이</b>
+          <span class="umeta">추정 3살 · 진돗개믹스(추정) · 남아</span>
+          <p class="ustory">조용하고 듬직한 몽이가 처음 만날 가족을 기다리고 있어요.</p>
+          <a class="btn btn-primary" href="passport.html?dog=3" style="text-decoration:none;text-align:center;display:block">📖 이야기 보기</a>
+        </div>
+      </div>
+      <div class="ucard">
+        <div class="uphoto">
+          <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=80"
+               alt="강아지" onerror="this.style.display='none'"/>
+          <div class="dday" style="background:#5FB58E">보호 마감 D-9</div>
+        </div>
+        <div class="ubody">
+          <b>초코</b>
+          <span class="umeta">추정 4살 · 푸들(추정) · 남아</span>
+          <p class="ustory">사람 손을 좋아하는 다정한 초코, 평생 가족을 찾고 있어요.</p>
+          <a class="btn btn-primary" href="passport.html?dog=2" style="text-decoration:none;text-align:center;display:block">📖 이야기 보기</a>
+        </div>
       </div>
     </div>
+    <button class="arrow" id="urgentNext" aria-label="다음">›</button>
   </div>
 
   <section>
@@ -217,6 +268,16 @@
     const { pawFetch, badge, LABELS, dogMeta } = window.PawAPI;
     badge("loading");
 
+    // 썸네일이 없는 공공데이터/시드 강아지를 위한 예시 사진 풀(둥글둥글 따뜻한 톤)
+    const SAMPLE_PHOTOS = [
+      "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=700&q=80",
+      "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=700&q=80",
+    ];
+
     // 1) 보호 마감 임박 강아지 캐러셀
     function ddayColor(d) {
       if (d == null) return "#9AA0A6";
@@ -229,11 +290,10 @@
       if (d <= 0) return "보호 마감 D-day";
       return "보호 마감 D-" + d;
     }
-    function card(dog) {
+    function card(dog, i) {
       const color = ddayColor(dog.days_left);
-      const img = dog.thumbnail_url
-        ? `<img src="${dog.thumbnail_url}" alt="${dog.name}" onerror="this.style.display='none'"/>`
-        : "";
+      const src = dog.thumbnail_url || SAMPLE_PHOTOS[i % SAMPLE_PHOTOS.length];
+      const img = `<img src="${src}" alt="${dog.name}" onerror="this.style.display='none'"/>`;
       return `<div class="ucard">
         <div class="uphoto">${img}<div class="dday" style="background:${color}">${ddayText(dog.days_left)}</div></div>
         <div class="ubody">
@@ -244,15 +304,39 @@
         </div>
       </div>`;
     }
+
+    // 좌우 화살표로 카드 한 장씩 넘기기
+    const rail = document.getElementById("urgentRail");
+    const prev = document.getElementById("urgentPrev");
+    const next = document.getElementById("urgentNext");
+    function step() {
+      const first = rail.querySelector(".ucard");
+      const gap = 18;
+      return first ? first.getBoundingClientRect().width + gap : 288;
+    }
+    function updateArrows() {
+      const maxScroll = rail.scrollWidth - rail.clientWidth - 2;
+      prev.disabled = rail.scrollLeft <= 2;
+      next.disabled = rail.scrollLeft >= maxScroll;
+      const hidden = maxScroll <= 2; // 넘길 카드가 없으면 화살표 숨김
+      prev.style.display = next.style.display = hidden ? "none" : "grid";
+    }
+    prev.addEventListener("click", () => rail.scrollBy({ left: -step(), behavior: "smooth" }));
+    next.addEventListener("click", () => rail.scrollBy({ left: step(), behavior: "smooth" }));
+    rail.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    updateArrows();
+
     try {
       const dogs = await pawFetch("/dogs/urgent");
       if (Array.isArray(dogs) && dogs.length) {
-        document.getElementById("urgentRail").innerHTML = dogs.map(card).join("");
+        rail.innerHTML = dogs.map(card).join("");
       }
       badge("live");
     } catch (e) {
       badge("demo"); // 백엔드 미연결 → HTML 데모 카드 유지
     }
+    updateArrows();
 
     // 2) 미니 타임라인(대표 강아지 한 마리)
     try {

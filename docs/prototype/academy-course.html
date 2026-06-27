@@ -78,18 +78,17 @@
       <div class="content" id="content">불러오는 중…</div>
     </div>
 
-    <div class="card" id="quizCard">
-      <div class="quiz-title">📝 이해도 퀴즈</div>
-      <div class="quiz-sub">정답 60% 이상이면 수료 배지를 받아요. 부담 갖지 말고 천천히 풀어보세요!</div>
-      <form id="quizForm"></form>
-      <button class="btn btn-primary" id="submitBtn" type="button">제출하고 채점하기</button>
+    <div class="card" id="completeCard">
+      <div class="quiz-title">🎓 이 과정을 다 읽으셨나요?</div>
+      <div class="quiz-sub">시험은 없어요. 끝까지 읽으셨다면 수료 배지를 받아보세요. 천천히, 부담 없이요!</div>
+      <button class="btn btn-primary" id="completeBtn" type="button">다 읽었어요 — 수료하기 🎓</button>
       <div class="hint" id="loginHint" style="display:none">
         수료 기록을 저장하려면 <a href="login.html">로그인</a>이 필요해요.
       </div>
     </div>
 
     <div class="card result" id="resultCard">
-      <div class="ring" id="ring"></div>
+      <div class="ring" id="ring">🎓</div>
       <h2 id="resultTitle"></h2>
       <p id="resultDesc"></p>
       <div id="badgeWrap"></div>
@@ -103,34 +102,6 @@
   const id = new URLSearchParams(location.search).get("id") || "1";
   let course = null;
 
-  function renderQuiz(questions) {
-    const form = document.getElementById("quizForm");
-    form.innerHTML = questions
-      .map(
-        (q, qi) => `
-      <div class="q" data-qi="${qi}">
-        <div class="qtext">${qi + 1}. ${q.question}</div>
-        ${q.options
-          .map(
-            (opt, oi) => `
-          <label class="opt"><input type="radio" name="q${qi}" value="${oi}"> ${opt}</label>`
-          )
-          .join("")}
-        <div class="exp" style="display:none"></div>
-      </div>`
-      )
-      .join("");
-
-    // 선택 하이라이트
-    form.querySelectorAll(".opt input").forEach((inp) => {
-      inp.addEventListener("change", () => {
-        const q = inp.closest(".q");
-        q.querySelectorAll(".opt").forEach((l) => l.classList.remove("sel"));
-        inp.closest(".opt").classList.add("sel");
-      });
-    });
-  }
-
   async function load() {
     badge("loading");
     try {
@@ -140,86 +111,49 @@
       badge("demo");
       document.getElementById("content").textContent =
         "백엔드에 연결되지 않아 교육 내용을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.";
-      document.getElementById("submitBtn").disabled = true;
+      document.getElementById("completeBtn").disabled = true;
       return;
     }
     document.getElementById("emoji").textContent = course.emoji || "📘";
     document.getElementById("title").textContent = course.title;
     document.getElementById("summary").textContent = course.summary;
     document.getElementById("content").textContent = course.content;
-    renderQuiz(course.questions);
     if (!getUser()) document.getElementById("loginHint").style.display = "block";
   }
 
-  document.getElementById("submitBtn").addEventListener("click", async () => {
+  document.getElementById("completeBtn").addEventListener("click", async () => {
     if (!course) return;
-    const answers = [];
-    for (let i = 0; i < course.questions.length; i++) {
-      const sel = document.querySelector(`input[name="q${i}"]:checked`);
-      if (!sel) {
-        alert(`${i + 1}번 문항을 선택해 주세요 🐾`);
-        return;
-      }
-      answers.push(Number(sel.value));
-    }
     if (!getUser()) {
       if (confirm("수료 기록을 저장하려면 로그인이 필요해요. 로그인 페이지로 갈까요?")) {
         location.href = "login.html";
       }
       return;
     }
-
-    const btn = document.getElementById("submitBtn");
+    const btn = document.getElementById("completeBtn");
     btn.disabled = true;
-    btn.textContent = "채점 중…";
+    btn.textContent = "기록하는 중…";
     try {
-      const res = await pawSend("/academy/courses/" + id + "/submit", "POST", { answers }, true);
-      showResult(res);
+      await pawSend("/academy/courses/" + id + "/complete", "POST", {}, true);
+      showResult();
     } catch (e) {
-      alert("채점에 실패했어요: " + e.message);
+      alert("수료 처리에 실패했어요: " + e.message);
       btn.disabled = false;
-      btn.textContent = "제출하고 채점하기";
+      btn.textContent = "다 읽었어요 — 수료하기 🎓";
     }
   });
 
-  function showResult(res) {
-    // 문항별 정답/오답 표시
-    res.results.forEach((item, qi) => {
-      const q = document.querySelector(`.q[data-qi="${qi}"]`);
-      const opts = q.querySelectorAll(".opt");
-      const chosen = q.querySelector("input:checked");
-      opts.forEach((l, oi) => {
-        l.classList.remove("sel");
-        if (oi === item.answer_index) l.classList.add("correct");
-        if (chosen && Number(chosen.value) === oi && !item.correct) l.classList.add("wrong");
-        l.querySelector("input").disabled = true;
-      });
-      if (item.explanation) {
-        const exp = q.querySelector(".exp");
-        exp.style.display = "block";
-        exp.textContent = "💡 " + item.explanation;
-      }
-    });
-
-    document.getElementById("submitBtn").style.display = "none";
+  function showResult() {
+    document.getElementById("completeCard").style.display = "none";
     const card = document.getElementById("resultCard");
     card.classList.add("show");
     const ring = document.getElementById("ring");
-    ring.textContent = res.score + "/" + res.total;
-    ring.style.background = res.passed
-      ? "linear-gradient(135deg,#9BCFC0,#6FB89E)"
-      : "linear-gradient(135deg,#F3D2C0,#E8836A)";
-    if (res.passed) {
-      document.getElementById("resultTitle").textContent = "수료를 축하해요! 🎉";
-      document.getElementById("resultDesc").textContent =
-        "책임 있는 입양 준비에 한 걸음 더 가까워졌어요.";
-      document.getElementById("badgeWrap").innerHTML =
-        `<div class="mybadge">${course.emoji || "🎓"} ${course.title} 수료 배지 획득</div>`;
-    } else {
-      document.getElementById("resultTitle").textContent = "조금만 더! 💪";
-      document.getElementById("resultDesc").textContent =
-        "해설을 읽고 다시 도전하면 금방 수료할 수 있어요.";
-    }
+    ring.textContent = course.emoji || "🎓";
+    ring.style.background = "linear-gradient(135deg,#9BCFC0,#6FB89E)";
+    document.getElementById("resultTitle").textContent = "수료를 축하해요! 🎉";
+    document.getElementById("resultDesc").textContent =
+      "책임 있는 입양 준비에 한 걸음 더 가까워졌어요.";
+    document.getElementById("badgeWrap").innerHTML =
+      `<div class="mybadge">${course.emoji || "🎓"} ${course.title} 수료 배지 획득</div>`;
     card.scrollIntoView({ behavior: "smooth" });
   }
 
