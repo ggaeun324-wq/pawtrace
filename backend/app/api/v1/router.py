@@ -10,6 +10,7 @@ from app.api.v1.routes import (
     auth,
     dogs,
     health,
+    journey,
     reports,
     shelter_ai,
     shelters,
@@ -26,3 +27,4 @@ api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(academy.router, prefix="/academy", tags=["academy"])
 api_router.include_router(trust.router, prefix="/trust", tags=["trust"])
 api_router.include_router(shelter_ai.router, prefix="/shelter", tags=["shelter-ai"])
+api_router.include_router(journey.router, prefix="/journey", tags=["journey"])

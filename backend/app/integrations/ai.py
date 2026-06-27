@@ -169,3 +169,27 @@ def dog_intro_draft(hints: dict) -> dict:
         "personality_keywords": keywords,
         "note": note,
     }
+
+
+def journey_draft(memo: str, dog_name: str | None = None) -> dict:
+    """입양자가 직접 쓴 메모를 '정리'해 글쓰기 초안을 돕습니다.
+
+    원칙:
+    - 행복/불행 같은 상태를 판단하지 않습니다.
+    - 메모에 없는 사실이나 감정을 지어내지 않습니다(verbatim 유지).
+    - 사용자의 문장을 다듬어 보기 좋게 정리하는 보조 역할만 합니다.
+    """
+    name = (dog_name or "우리 아이").strip() or "우리 아이"
+    cleaned = " ".join((memo or "").split())  # 과도한 공백만 정리
+
+    if not cleaned:
+        draft = ""
+    else:
+        # 메모 내용은 그대로 두고, 부담 없는 머리말만 더합니다(감정 지어내지 않음).
+        draft = f"{name}와 함께한 요즘이에요.\n\n{cleaned}"
+
+    note = (
+        "AI는 행복 여부를 판단하지 않아요. 직접 쓰신 메모의 표현만 다듬어 드렸어요. "
+        "내용을 확인하고 자유롭게 고쳐서 올려주세요."
+    )
+    return {"draft": draft, "note": note}

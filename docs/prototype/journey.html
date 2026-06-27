@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 반려생활 기록</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --coral:#E8836A; --coral-deep:#D96E55; --mint:#CCE7DF;
+    --mint-deep:#9BCFC0; --sun:#F2DEAE; --lilac:#E2D5F1; --shadow:0 12px 28px rgba(200,140,110,.14);
+    --shadow-sm:0 6px 15px rgba(150,120,100,.10); --r:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 60px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;text-decoration:none;color:var(--ink)}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .navlinks{display:flex;gap:8px;flex-wrap:wrap}
+  .navlinks a{color:var(--ink-soft);text-decoration:none;font-weight:600;font-size:15px;
+       padding:9px 16px;border-radius:999px;transition:.2s}
+  .navlinks a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .navlinks a.active{background:var(--ink);color:#fff}
+  .head{text-align:center;margin:14px 0 22px}
+  .head .pill{display:inline-block;background:#fff;padding:6px 16px;border-radius:999px;
+       box-shadow:var(--shadow-sm);font-weight:800;color:var(--coral-deep);margin-bottom:12px}
+  .head h1{font-size:28px;font-weight:800;letter-spacing:-1px}
+  .head p{color:var(--ink-soft);font-weight:600;margin-top:4px;font-size:14.5px}
+  .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:24px;margin-top:20px}
+  .card h2{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .card p.desc{color:var(--ink-soft);font-size:13.5px;margin-bottom:16px}
+  label{display:block;font-weight:700;font-size:14px;margin:14px 0 6px}
+  input[type=text],textarea,select{width:100%;border:2px solid #F0E4DA;border-radius:14px;
+       padding:12px 14px;font-family:inherit;font-size:14.5px;color:var(--ink);background:#fff}
+  textarea{min-height:90px;resize:vertical}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--mint-deep)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:560px){.row2{grid-template-columns:1fr}}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;
+       padding:13px 22px;border-radius:16px;transition:.18s transform;margin-top:14px}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--coral),var(--coral-deep));color:#fff;box-shadow:var(--shadow)}
+  .btn-mint{background:linear-gradient(135deg,var(--mint-deep),#7fbfae);color:#fff;box-shadow:var(--shadow)}
+  .ai-note{background:#FFF6EE;border:1px dashed #EAD7C6;border-radius:16px;padding:12px 15px;
+       font-size:12.6px;color:var(--ink-soft);line-height:1.5;margin-top:10px}
+  /* 타임라인 */
+  .timeline{position:relative;margin-top:6px;padding-left:30px}
+  .timeline::before{content:"";position:absolute;left:9px;top:6px;bottom:6px;width:3px;
+       background:linear-gradient(var(--peach),var(--mint-deep));border-radius:3px}
+  .tentry{position:relative;margin-bottom:18px}
+  .tentry::before{content:"🐾";position:absolute;left:-30px;top:0;width:24px;height:24px;
+       display:grid;place-items:center;font-size:15px;background:#fff;border-radius:50%;box-shadow:var(--shadow-sm)}
+  .tentry .q{font-size:12px;font-weight:800;color:var(--coral-deep)}
+  .tentry h3{font-size:17px;font-weight:800;margin:2px 0 6px}
+  .tentry .photo{width:100%;max-height:240px;object-fit:cover;border-radius:16px;margin:6px 0}
+  .tentry p{font-size:14.5px;color:var(--ink);white-space:pre-line}
+  .tentry .foot{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:var(--ink-soft)}
+  .cheer{cursor:pointer;background:#FFF3EC;color:var(--coral-deep);font-weight:800;border:none;
+       padding:7px 14px;border-radius:999px;font-family:inherit;font-size:13px;transition:.15s}
+  .cheer:hover{transform:scale(1.06)}
+  .toast{font-size:13px;color:#3f6b5e;background:#E3F1EB;display:none;padding:8px 14px;
+       border-radius:999px;margin-top:12px}
+  .toast.show{display:inline-block}
+  .empty{color:var(--ink-soft);font-size:14px;text-align:center;padding:20px}
+  .guard{text-align:center;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+       padding:44px 24px;margin-top:30px}
+  .guard a{color:var(--coral-deep);font-weight:800;text-decoration:none}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+      <div class="navlinks">
+        <a href="index.html">오늘의 친구</a>
+        <a href="map.html">보호소 지도</a>
+        <a href="happyending.html">해피엔딩</a>
+        <a href="academy.html">아카데미</a>
+        <a href="profile.html">내 준비</a>
+        <a class="active" href="journey.html">반려생활</a>
+      </div>
+    </nav>
+
+    <div class="head">
+      <span class="pill">🌷 Family Journey</span>
+      <h1>입양은 끝이 아니라 시작이에요</h1>
+      <p>분기마다 우리 아이의 성장을 기록해요. 다른 가족들의 응원도 받을 수 있어요 🐾</p>
+    </div>
+
+    <!-- 비로그인 -->
+    <div id="guard" class="guard" style="display:none">
+      <div style="font-size:40px">🔑</div>
+      <h2 style="margin-top:10px">로그인이 필요해요</h2>
+      <p style="color:var(--ink-soft);margin:8px 0 4px">반려생활 기록은 로그인 후 확인할 수 있어요.</p>
+      <a href="login.html">로그인 / 회원가입 →</a>
+    </div>
+
+    <div id="content" style="display:none">
+      <!-- 작성 (입양자만) -->
+      <div class="card" id="writeCard">
+        <h2>✍️ 새 기록 남기기</h2>
+        <p class="desc">우리 아이의 요즘을 간단히 적어주세요. AI가 메모를 다듬어 초안을 만들어드려요(행복 여부는 판단하지 않아요).</p>
+
+        <div class="row2">
+          <div>
+            <label>어떤 아이의 기록인가요?</label>
+            <select id="dogSelect"></select>
+          </div>
+          <div>
+            <label>분기</label>
+            <input type="text" id="quarter" placeholder="예) 2026 3분기" />
+          </div>
+        </div>
+
+        <label>제목</label>
+        <input type="text" id="title" placeholder="예) 첫 바다 나들이" />
+
+        <label>메모 (편하게 적어주세요)</label>
+        <textarea id="memo" placeholder="예) 오늘 초코랑 바다 갔어요. 처음엔 무서워했는데 나중엔 신나서 뛰어다녔어요."></textarea>
+        <button class="btn btn-mint" id="draftBtn">🤖 AI로 글 다듬기</button>
+        <div class="ai-note hidden" id="aiNote"></div>
+
+        <label>올릴 글 (수정 가능)</label>
+        <textarea id="body" placeholder="여기에 올릴 내용을 적거나, 위에서 AI 초안을 받아 다듬어 주세요."></textarea>
+
+        <label>사진 주소 (선택)</label>
+        <input type="text" id="photo" placeholder="https://... (선택)" />
+
+        <button class="btn btn-primary" id="saveBtn">기록 올리기</button>
+        <span class="toast" id="saveToast">기록을 올렸어요 🐾</span>
+      </div>
+
+      <!-- 입양 강아지가 없을 때 안내 -->
+      <div class="card hidden" id="noDogCard">
+        <h2>🐶 아직 기록할 아이가 없어요</h2>
+        <p class="desc">입양이 확정되면 이곳에서 우리 아이의 반려생활을 분기별로 기록할 수 있어요.
+          PawTrace는 입양 이후의 이야기를 가장 소중하게 생각해요.</p>
+      </div>
+
+      <!-- 내 타임라인 -->
+      <div class="card">
+        <h2>📖 우리 가족 타임라인</h2>
+        <p class="desc">시간 순서대로 쌓이는 우리 아이의 이야기예요.</p>
+        <div class="timeline" id="timeline"><div class="empty">불러오는 중…</div></div>
+      </div>
+    </div>
+  </div>
+
+<script src="api.js"></script>
+<script>
+  const { pawSend, getUser } = window.PawAPI;
+  const u = getUser();
+
+  if (!u) {
+    document.getElementById("guard").style.display = "block";
+  } else {
+    document.getElementById("content").style.display = "block";
+    init();
+  }
+
+  async function init() {
+    try {
+      const dogs = await pawSend("/journey/my-dogs", "GET", null, true);
+      const sel = document.getElementById("dogSelect");
+      if (!dogs.length) {
+        document.getElementById("writeCard").classList.add("hidden");
+        document.getElementById("noDogCard").classList.remove("hidden");
+      } else {
+        sel.innerHTML = dogs.map((d) => `<option value="${d.dog_id}">${d.dog_name}</option>`).join("");
+      }
+    } catch (e) { /* 무시 */ }
+    loadTimeline();
+  }
+
+  // AI 초안
+  document.getElementById("draftBtn").addEventListener("click", async () => {
+    const memo = document.getElementById("memo").value.trim();
+    if (!memo) { alert("먼저 메모를 적어주세요."); return; }
+    const sel = document.getElementById("dogSelect");
+    const dogName = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : null;
+    const btn = document.getElementById("draftBtn");
+    btn.disabled = true; btn.textContent = "🤖 다듬는 중…";
+    try {
+      const r = await pawSend("/journey/draft", "POST", { memo, dog_name: dogName }, true);
+      document.getElementById("body").value = r.draft;
+      const note = document.getElementById("aiNote");
+      note.textContent = "🤖 " + r.note;
+      note.classList.remove("hidden");
+    } catch (e) {
+      alert("초안 생성에 실패했어요: " + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = "🤖 AI로 글 다듬기";
+    }
+  });
+
+  // 저장
+  document.getElementById("saveBtn").addEventListener("click", async () => {
+    const dog_id = Number(document.getElementById("dogSelect").value);
+    const title = document.getElementById("title").value.trim();
+    const body = document.getElementById("body").value.trim();
+    if (!dog_id) { alert("기록할 아이를 선택해 주세요."); return; }
+    if (!title || !body) { alert("제목과 내용을 적어주세요."); return; }
+    const payload = {
+      dog_id,
+      quarter_label: document.getElementById("quarter").value.trim() || null,
+      title,
+      body,
+      photo_url: document.getElementById("photo").value.trim() || null,
+    };
+    try {
+      await pawSend("/journey", "POST", payload, true);
+      const t = document.getElementById("saveToast");
+      t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2500);
+      ["title", "memo", "body", "photo"].forEach((id) => (document.getElementById(id).value = ""));
+      document.getElementById("aiNote").classList.add("hidden");
+      loadTimeline();
+    } catch (e) {
+      alert("저장에 실패했어요: " + e.message);
+    }
+  });
+
+  async function loadTimeline() {
+    const box = document.getElementById("timeline");
+    try {
+      const entries = await pawSend("/journey/me", "GET", null, true);
+      if (!entries.length) {
+        box.innerHTML = '<div class="empty">아직 기록이 없어요. 첫 이야기를 남겨보세요 🐾</div>';
+        return;
+      }
+      // 최신순으로 오지만 타임라인은 오래된→최신이 자연스러우니 뒤집기
+      entries.reverse();
+      box.innerHTML = entries
+        .map((e) => `
+          <div class="tentry">
+            <div class="q">${e.quarter_label || ""} · ${e.dog_name}</div>
+            <h3>${escapeHtml(e.title)}</h3>
+            ${e.photo_url ? `<img class="photo" src="${e.photo_url}" onerror="this.remove()">` : ""}
+            <p>${escapeHtml(e.body)}</p>
+            <div class="foot">
+              <button class="cheer" data-id="${e.id}">🧡 응원 ${e.cheers}</button>
+            </div>
+          </div>`)
+        .join("");
+      box.querySelectorAll(".cheer").forEach((b) =>
+        b.addEventListener("click", async () => {
+          try {
+            const r = await pawSend(`/journey/${b.dataset.id}/cheer`, "POST", null, true);
+            b.textContent = "🧡 응원 " + r.cheers;
+          } catch (e) { /* 무시 */ }
+        })
+      );
+    } catch (e) {
+      box.innerHTML = '<div class="empty">타임라인을 불러오지 못했어요.</div>';
+    }
+  }
+
+  function escapeHtml(s) {
+    return (s || "").replace(/[&<>"]/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+</script>
+</body>
+</html>

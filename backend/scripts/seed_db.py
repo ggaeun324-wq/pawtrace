@@ -23,6 +23,7 @@ from app.models import (
     AdoptionChecklist,
     Course,
     Dog,
+    JourneyEntry,
     PassportEvent,
     QuizQuestion,
     Shelter,
@@ -46,7 +47,7 @@ def _fix_sequences(db) -> None:
     for table in (
         "shelters", "dogs", "passport_events", "reports", "users",
         "adoptions", "adoption_applications",
-        "user_profiles", "adoption_checklists",
+        "user_profiles", "adoption_checklists", "journey_entries",
     ):
         db.execute(
             text(
@@ -326,10 +327,65 @@ def seed_profiles() -> None:
         db.close()
 
 
+def seed_journey() -> None:
+    """Family Journey 데모 시드(멱등).
+
+    데모 입양자(adopter)가 입양한 초코(dog 2)에 분기별 기록 2건을 남겨
+    타임라인이 의미 있게 보이도록 합니다. 이미 기록이 있으면 건너뜁니다.
+    """
+    db = SessionLocal()
+    try:
+        if db.query(JourneyEntry).count() > 0:
+            return
+        adopter = db.query(User).filter(User.email == "adopter@pawtrace.dev").first()
+        if adopter is None or db.get(Dog, 2) is None:
+            return
+        entries = [
+            {
+                "quarter_label": "2026 1분기",
+                "title": "초코가 우리 집에 왔어요",
+                "body": (
+                    "초코와 함께한 요즘이에요.\n\n낯선 환경에 조금 긴장했지만, 사흘 만에"
+                    " 소파를 제일 좋아하는 자리로 정했어요. 산책도 조금씩 늘려가는 중이에요."
+                ),
+                "cheers": 12,
+            },
+            {
+                "quarter_label": "2026 2분기",
+                "title": "산책 친구가 생겼어요",
+                "body": (
+                    "초코와 함께한 요즘이에요.\n\n동네 강아지들과 인사도 하고, 이제는"
+                    " 이름을 부르면 달려와요. 건강검진도 잘 받았어요."
+                ),
+                "cheers": 8,
+            },
+        ]
+        for e in entries:
+            db.add(
+                JourneyEntry(
+                    user_id=adopter.id,
+                    dog_id=2,
+                    quarter_label=e["quarter_label"],
+                    title=e["title"],
+                    body=e["body"],
+                    cheers=e["cheers"],
+                )
+            )
+        db.commit()
+        _fix_sequences(db)
+        print("[seed] Family Journey 데모 기록 생성 완료.")
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     seed()
     seed_users()
     seed_relations()
     seed_academy()
     seed_profiles()
+    seed_journey()
 

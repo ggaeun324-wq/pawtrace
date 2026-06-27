@@ -280,3 +280,27 @@ class AdoptionChecklist(Base):
 
     user: Mapped["User"] = relationship()
 
+
+class JourneyEntry(Base):
+    """Family Journey — 입양자가 직접 남기는 분기별 반려생활 기록.
+
+    철학: '입양은 끝이 아니라 시작'. 입양한 사용자만 작성할 수 있고,
+    댓글은 없으며 '응원(cheer)'만 받을 수 있습니다.
+    AI는 행복을 판단하지 않고, 사용자가 쓴 메모 정리만 돕습니다.
+    """
+
+    __tablename__ = "journey_entries"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    dog_id: Mapped[int] = mapped_column(ForeignKey("dogs.id"), index=True)
+    quarter_label: Mapped[str | None] = mapped_column(String(20))  # 예: "2026 2분기"
+    title: Mapped[str] = mapped_column(String(120))
+    body: Mapped[str]
+    photo_url: Mapped[str | None] = mapped_column(String(300))
+    cheers: Mapped[int] = mapped_column(Integer, default=0)  # 응원(좋아요) 수
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    user: Mapped["User"] = relationship()
+    dog: Mapped["Dog"] = relationship()
+
