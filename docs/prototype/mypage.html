@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 마이페이지</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --coral:#E8836A; --coral-deep:#D96E55; --mint:#CCE7DF;
+    --mint-deep:#9BCFC0; --sun:#F2DEAE; --lilac:#E2D5F1; --shadow:0 12px 28px rgba(200,140,110,.14);
+    --shadow-sm:0 6px 15px rgba(150,120,100,.10); --r:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px 60px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;text-decoration:none;color:var(--ink)}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .navlinks{display:flex;gap:8px}
+  .navlinks a{color:var(--ink-soft);text-decoration:none;font-weight:600;font-size:15px;
+       padding:9px 16px;border-radius:999px;transition:.2s}
+  .navlinks a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .navlinks a.active{background:var(--ink);color:#fff}
+  .head{text-align:center;margin:14px 0 24px}
+  .head .pill{display:inline-block;background:#fff;padding:6px 16px;border-radius:999px;
+       box-shadow:var(--shadow-sm);font-weight:800;color:var(--coral-deep);margin-bottom:12px}
+  .head h1{font-size:30px;font-weight:800;letter-spacing:-1px}
+  .head p{color:var(--ink-soft);font-weight:600;margin-top:4px}
+  .summary{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:24px;margin-bottom:30px}
+  .summary h2{font-size:19px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:16px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px}
+  .stat{background:#F8F1EA;border-radius:18px;padding:16px;text-align:center}
+  .stat .num{font-size:24px;font-weight:800;color:var(--coral-deep)}
+  .stat .lbl{font-size:12.5px;color:var(--ink-soft);font-weight:700;margin-top:2px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .mybadge{background:linear-gradient(135deg,var(--sun),#F6E6C0);color:#8a6d1f;font-weight:800;
+       font-size:13px;padding:8px 14px;border-radius:999px;box-shadow:var(--shadow-sm)}
+  .sec-title{font-size:18px;font-weight:800;margin-bottom:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+  .mcard{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;
+       transition:.2s;text-decoration:none;color:inherit;display:flex;flex-direction:column}
+  .mcard:hover{transform:translateY(-4px)}
+  .mphoto{height:110px;display:grid;place-items:center;font-size:46px}
+  .mbody{padding:16px 18px}
+  .mbody h3{font-size:17px;font-weight:800}
+  .mbody p{font-size:13.5px;color:var(--ink-soft);margin-top:4px}
+  .gate{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:40px;text-align:center}
+  .gate h2{font-size:20px;font-weight:800;margin-bottom:8px}
+  .gate p{color:var(--ink-soft);font-weight:600;margin-bottom:18px}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;text-decoration:none;
+       padding:13px 22px;border-radius:16px;transition:.18s transform;display:inline-block;
+       background:linear-gradient(135deg,var(--coral),var(--coral-deep));color:#fff;box-shadow:var(--shadow)}
+  .btn:hover{transform:translateY(-2px)}
+  .note{font-size:12.5px;color:var(--ink-soft);background:#FFF3EC;display:inline-block;
+       padding:8px 14px;border-radius:999px;margin-top:14px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+      <div class="navlinks"></div>
+    </nav>
+
+    <div class="head">
+      <span class="pill">🐾 마이페이지</span>
+      <h1 id="hello">내 입양 준비 공간</h1>
+      <p>아카데미 · 내 준비 · 반려생활 · 입양 가이드를 한 곳에서 챙겨요 <span style="color:var(--coral)">♥</span></p>
+    </div>
+
+    <div id="content"></div>
+  </div>
+
+<script src="api.js"></script>
+<script>
+  const { pawSend, getUser } = window.PawAPI;
+  const content = document.getElementById("content");
+
+  // 로그인 후 마이페이지에서 볼 수 있는 메뉴(상단 탭에서 이동)
+  const MENUS = [
+    { href: "academy.html", emoji: "🎓", bg: "linear-gradient(135deg,var(--mint),var(--lilac))",
+      title: "아카데미", desc: "책임 있는 입양을 위한 짧은 교육과 수료 배지" },
+    { href: "profile.html", emoji: "📋", bg: "linear-gradient(135deg,var(--peach),var(--sun))",
+      title: "내 준비", desc: "입양 준비 프로필과 체크리스트 작성" },
+    { href: "journey.html", emoji: "🌱", bg: "linear-gradient(135deg,var(--mint),var(--mint-deep))",
+      title: "반려생활", desc: "분기별 성장 기록으로 남기는 우리 이야기" },
+    { href: "guide.html", emoji: "📖", bg: "linear-gradient(135deg,var(--lilac),var(--peach))",
+      title: "입양 가이드", desc: "입양 절차와 준비물을 차근차근 안내" },
+  ];
+
+  function menuGrid(){
+    return `<section>
+      <div class="sec-title">📂 내 메뉴</div>
+      <div class="grid">${MENUS.map((m) => `
+        <a class="mcard" href="${m.href}">
+          <div class="mphoto" style="background:${m.bg}">${m.emoji}</div>
+          <div class="mbody"><h3>${m.title}</h3><p>${m.desc}</p></div>
+        </a>`).join("")}</div>
+    </section>`;
+  }
+
+  function gate(){
+    content.innerHTML = `<div class="gate">
+      <h2>로그인하고 내 준비 현황을 확인해요 🐾</h2>
+      <p>아카데미 수료, 입양 준비 체크리스트, 반려생활 기록을 한 곳에서 관리할 수 있어요.</p>
+      <a class="btn" href="login.html">로그인 / 회원가입</a>
+    </div>`;
+  }
+
+  function summaryCard(t){
+    const badges = (t.education_badges || [])
+      .map((b) => `<div class="mybadge">${b.emoji || "🎓"} ${b.course_title} 수료</div>`)
+      .join("");
+    return `<div class="summary">
+      <h2>🌟 내 준비 현황</h2>
+      <div class="stats">
+        <div class="stat"><div class="num">${t.days_since_join}일</div><div class="lbl">함께한 날</div></div>
+        <div class="stat"><div class="num">${t.profile_completeness}%</div><div class="lbl">프로필 작성률</div></div>
+        <div class="stat"><div class="num">${t.checklist_completed}/${t.checklist_total}</div><div class="lbl">체크리스트</div></div>
+        <div class="stat"><div class="num">${(t.education_badges||[]).length}</div><div class="lbl">수료 배지</div></div>
+        <div class="stat"><div class="num">${t.has_life_record ? "✓" : "—"}</div><div class="lbl">반려생활 기록</div></div>
+      </div>
+      ${badges ? `<div class="badges">${badges}</div>` : ""}
+    </div>`;
+  }
+
+  (async function(){
+    const u = getUser();
+    if (!u){ gate(); return; }
+    document.getElementById("hello").textContent = u.display_name + "님의 준비 공간";
+    content.innerHTML = menuGrid();
+    try {
+      const t = await pawSend("/trust/me", "GET", null, true);
+      content.insertAdjacentHTML("afterbegin", summaryCard(t));
+    } catch (e) {
+      /* 요약 실패 시 메뉴만 표시 */
+    }
+  })();
+</script>
+</body>
+</html>

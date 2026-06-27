@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.domain import DataSource, TransparencyLevel
-from app.integrations import public_data
+from app.integrations import geocoding, public_data
 from app.models import Dog, Shelter
 
 
@@ -43,6 +43,14 @@ def _upsert_shelter(db: Session, data: dict) -> Shelter:
     shelter.region = data["region"]
     shelter.address = data.get("address")
     shelter.phone = data.get("phone")
+    # 좌표가 아직 없고 주소가 있으면 카카오 지오코딩으로 위경도를 채웁니다.
+    # (키 없음/실패 시 None → 지도에는 안 찍히지만 동기화는 계속 진행)
+    if shelter.lat is None and shelter.address:
+        coord = geocoding.geocode(shelter.address)
+        if coord is not None:
+            shelter.lat, shelter.lng = coord
+            # PostGIS POINT(경도 위도) — 향후 반경검색(ST_DWithin)에 사용
+            shelter.location = f"SRID=4326;POINT({shelter.lng} {shelter.lat})"
     db.flush()  # id 확보
     return shelter
 

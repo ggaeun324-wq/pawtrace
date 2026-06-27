@@ -304,3 +304,24 @@ class JourneyEntry(Base):
     user: Mapped["User"] = relationship()
     dog: Mapped["Dog"] = relationship()
 
+
+
+class Product(Base):
+    """쇼핑몰 상품 (굿즈/사료/후원 키트 등).
+
+    MVP 범위: 상품 진열만 합니다(장바구니/결제 없음).
+    PawTrace 미션에 맞춰 '수익 일부가 보호소를 후원한다'는 메시지를
+    supports_shelter 플래그로 표현할 수 있게 두었습니다.
+    """
+
+    __tablename__ = "products"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120))
+    category: Mapped[str] = mapped_column(String(40), index=True)  # 예: 사료/장난감/굿즈
+    price: Mapped[int] = mapped_column(Integer)  # 원(KRW) 단위 정수
+    image_url: Mapped[str | None] = mapped_column(String(300))
+    description: Mapped[str | None] = mapped_column(String(400))
+    supports_shelter: Mapped[bool] = mapped_column(Boolean, default=False)  # 보호소 후원 상품
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

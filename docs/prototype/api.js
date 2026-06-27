@@ -188,28 +188,54 @@
     }
   }
 
-  // 보호소 직원/관리자에게만 보이는 추가 네비 링크를 주입합니다.
-  //  - 일반 사용자 화면은 깔끔하게 유지하고, 직원에게만 운영 메뉴를 노출.
-  function staffNav() {
+  // 상단 네비게이션을 한 곳에서 렌더링합니다.
+  //  - 각 페이지의 .navlinks 를 표준 탭 구조로 다시 그려, 12개 페이지를 일일이
+  //    수정하지 않아도 메뉴가 일관되게 유지됩니다.
+  //  - 로그인 상태에 따라 '마이페이지'를, 직원/관리자에겐 운영 메뉴를 덧붙입니다.
+  const NAV_TABS = [
+    { href: "index.html", text: "오늘의 친구" },
+    { href: "map.html", text: "보호소 지도" },
+    { href: "happyending.html", text: "해피~ing" },
+    { href: "shop.html", text: "쇼핑몰" },
+  ];
+  // 세부 페이지 → 활성 표시할 상위 탭 매핑
+  const NAV_PARENT = {
+    "passport.html": "index.html",
+    "happystory.html": "happyending.html",
+    "product.html": "shop.html",
+    "academy.html": "mypage.html",
+    "academy-course.html": "mypage.html",
+    "profile.html": "mypage.html",
+    "journey.html": "mypage.html",
+    "guide.html": "mypage.html",
+  };
+
+  function renderNav() {
     const u = getUser();
-    if (!u || (u.role !== "shelter_staff" && u.role !== "admin")) return;
+    const here = location.pathname.split("/").pop() || "index.html";
+    const active = NAV_PARENT[here] || here;
+
+    const links = [...NAV_TABS];
+    if (u) links.push({ href: "mypage.html", text: "마이페이지" });
+    if (u && (u.role === "shelter_staff" || u.role === "admin")) {
+      links.push({ href: "shelter-register.html", text: "강아지 등록" });
+      links.push({ href: "shelter-applicants.html", text: "입양 신청자" });
+    }
+
     document.querySelectorAll(".navlinks").forEach((nav) => {
-      if (nav.dataset.staffInjected) return;
-      nav.dataset.staffInjected = "1";
-      const links = [
-        { href: "shelter-register.html", text: "강아지 등록" },
-        { href: "shelter-applicants.html", text: "입양 신청자" },
-      ];
-      const here = location.pathname.split("/").pop();
+      nav.innerHTML = "";
       links.forEach((l) => {
         const a = document.createElement("a");
         a.href = l.href;
         a.textContent = l.text;
-        if (l.href === here) a.className = "active";
+        if (l.href === active) a.className = "active";
         nav.appendChild(a);
       });
     });
   }
+
+  // 하위호환: 기존 호출부를 위해 staffNav 는 renderNav 로 위임
+  const staffNav = renderNav;
 
   // 전역으로 노출 (각 페이지 스크립트에서 사용)
   window.PawAPI = {
@@ -227,13 +253,14 @@
     getUser,
     authChip,
     staffNav,
+    renderNav,
     ROLE_LABEL,
   };
 
-  // 모든 페이지에서 로그인 상태 칩 + (직원이면) 운영 메뉴를 자동 표시
+  // 모든 페이지에서 로그인 상태 칩 + 표준 네비게이션을 자동 표시
   function initChrome() {
     authChip();
-    staffNav();
+    renderNav();
   }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initChrome);

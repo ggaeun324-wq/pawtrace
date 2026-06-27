@@ -25,6 +25,7 @@ from app.models import (
     Dog,
     JourneyEntry,
     PassportEvent,
+    Product,
     QuizQuestion,
     Shelter,
     User,
@@ -381,6 +382,76 @@ def seed_journey() -> None:
         db.close()
 
 
+def seed_products() -> None:
+    """쇼핑몰 데모 상품 시드(멱등). 이미 상품이 있으면 건너뜁니다.
+
+    MVP 진열용 샘플입니다. 일부는 '수익 일부 보호소 후원' 상품으로 표시합니다.
+    """
+    db = SessionLocal()
+    try:
+        if db.query(Product).count() > 0:
+            return
+        items = [
+            {
+                "name": "포근 강아지 방석 (라운드)",
+                "category": "리빙",
+                "price": 28000,
+                "image_url": "https://images.unsplash.com/photo-1591768575198-88dac53fbd0a?w=600",
+                "description": "둥글둥글 포근한 라운드 방석. 세탁기 사용 가능해요.",
+                "supports_shelter": True,
+            },
+            {
+                "name": "유기농 연어 사료 1.2kg",
+                "category": "사료",
+                "price": 32000,
+                "image_url": "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600",
+                "description": "소화가 편한 연어 단일 단백질 사료.",
+                "supports_shelter": False,
+            },
+            {
+                "name": "삑삑이 라텍스 장난감 세트",
+                "category": "장난감",
+                "price": 15000,
+                "image_url": "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=600",
+                "description": "물고 뜯어도 안전한 라텍스 장난감 3종 세트.",
+                "supports_shelter": False,
+            },
+            {
+                "name": "PawTrace 후원 굿즈 — 에코백",
+                "category": "굿즈",
+                "price": 18000,
+                "image_url": "https://images.unsplash.com/photo-1597843786411-a7fa8ad44a95?w=600",
+                "description": "수익 전액이 협력 보호소 운영을 후원하는 에코백.",
+                "supports_shelter": True,
+            },
+            {
+                "name": "산책 필수 — 가슴줄 + 리드줄",
+                "category": "산책",
+                "price": 24000,
+                "image_url": "https://images.unsplash.com/photo-1605897472359-85e4b94d685d?w=600",
+                "description": "목에 부담이 적은 H형 가슴줄과 리드줄 세트.",
+                "supports_shelter": False,
+            },
+            {
+                "name": "구조견 후원 키트 (소)",
+                "category": "후원",
+                "price": 30000,
+                "image_url": "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600",
+                "description": "보호소 강아지의 한 달 사료·간식을 후원하는 키트.",
+                "supports_shelter": True,
+            },
+        ]
+        for it in items:
+            db.add(Product(**it))
+        db.commit()
+        print(f"[seed] 쇼핑몰 상품 {len(items)}개 생성.")
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     seed()
     seed_users()
@@ -388,4 +459,5 @@ if __name__ == "__main__":
     seed_academy()
     seed_profiles()
     seed_journey()
+    seed_products()
 

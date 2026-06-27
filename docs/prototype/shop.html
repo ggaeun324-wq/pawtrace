@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 쇼핑몰</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --coral:#E8836A; --coral-deep:#D96E55; --mint:#CCE7DF;
+    --mint-deep:#9BCFC0; --sun:#F2DEAE; --lilac:#E2D5F1; --shadow:0 12px 28px rgba(200,140,110,.14);
+    --shadow-sm:0 6px 15px rgba(150,120,100,.10); --r:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px 60px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;text-decoration:none;color:var(--ink)}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .navlinks{display:flex;gap:8px}
+  .navlinks a{color:var(--ink-soft);text-decoration:none;font-weight:600;font-size:15px;
+       padding:9px 16px;border-radius:999px;transition:.2s}
+  .navlinks a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .navlinks a.active{background:var(--ink);color:#fff}
+  .head{text-align:center;margin:14px 0 20px}
+  .head .pill{display:inline-block;background:#fff;padding:6px 16px;border-radius:999px;
+       box-shadow:var(--shadow-sm);font-weight:800;color:var(--coral-deep);margin-bottom:12px}
+  .head h1{font-size:30px;font-weight:800;letter-spacing:-1px}
+  .head p{color:var(--ink-soft);font-weight:600;margin-top:4px}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:0 0 26px}
+  .chip{border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;
+       padding:9px 16px;border-radius:999px;background:#fff;color:var(--ink-soft);box-shadow:var(--shadow-sm);transition:.18s}
+  .chip:hover{transform:translateY(-2px)}
+  .chip.active{background:var(--ink);color:#fff}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+  .pcard{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;
+       transition:.2s;display:flex;flex-direction:column}
+  .pcard:hover{transform:translateY(-4px)}
+  .pphoto{height:180px;background:linear-gradient(135deg,var(--peach),var(--mint));position:relative}
+  .pphoto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .support-tag{position:absolute;top:12px;left:12px;background:#fff;color:#2f7d68;
+       font-weight:800;font-size:12px;padding:6px 11px;border-radius:999px;box-shadow:var(--shadow-sm)}
+  .pbody{padding:16px 18px;display:flex;flex-direction:column;flex:1}
+  .pcat{font-size:12px;color:var(--coral-deep);font-weight:800}
+  .pbody h3{font-size:16.5px;font-weight:800;margin:3px 0}
+  .pbody .desc{font-size:13.5px;color:var(--ink-soft);flex:1;margin-bottom:12px}
+  .prow{display:flex;align-items:center;justify-content:space-between}
+  .price{font-size:18px;font-weight:800}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:14px;
+       padding:9px 15px;border-radius:14px;transition:.18s transform;
+       background:linear-gradient(135deg,var(--coral),var(--coral-deep));color:#fff}
+  .btn:hover{transform:translateY(-2px)}
+  .empty{grid-column:1/-1;text-align:center;color:var(--ink-soft);font-weight:600;padding:40px}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;
+       font-weight:700;font-size:14px;padding:12px 20px;border-radius:999px;box-shadow:var(--shadow);
+       opacity:0;pointer-events:none;transition:.25s}
+  .toast.show{opacity:1}
+  .note{text-align:center;color:var(--ink-soft);font-size:13px;margin-top:26px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+      <div class="navlinks"></div>
+    </nav>
+
+    <div class="head">
+      <span class="pill">🛍️ PawTrace Shop</span>
+      <h1>아이와 함께하는 따뜻한 준비물</h1>
+      <p>몇몇 상품은 수익 일부가 협력 보호소를 후원해요 <span style="color:var(--coral)">♥</span></p>
+    </div>
+
+    <div id="filters" class="filters"></div>
+    <div id="grid" class="grid"></div>
+    <p class="note">결제 기능은 준비 중이에요. 지금은 둘러보기만 가능해요 🐾</p>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+<script src="api.js"></script>
+<script>
+  const { pawFetch, badge } = window.PawAPI;
+  const grid = document.getElementById("grid");
+  const filtersEl = document.getElementById("filters");
+  const toast = document.getElementById("toast");
+
+  // 백엔드 없이도 보이는 데모 상품
+  const DEMO = [
+    { id: 1, name: "포근 강아지 방석 (라운드)", category: "리빙", price: 28000,
+      image_url: "https://images.unsplash.com/photo-1591768575198-88dac53fbd0a?w=600",
+      description: "둥글둥글 포근한 라운드 방석.", supports_shelter: true },
+    { id: 2, name: "유기농 연어 사료 1.2kg", category: "사료", price: 32000,
+      image_url: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600",
+      description: "소화가 편한 단일 단백질 사료.", supports_shelter: false },
+    { id: 3, name: "삑삑이 라텍스 장난감 세트", category: "장난감", price: 15000,
+      image_url: "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=600",
+      description: "물고 뜯어도 안전한 3종 세트.", supports_shelter: false },
+    { id: 4, name: "PawTrace 후원 굿즈 — 에코백", category: "굿즈", price: 18000,
+      image_url: "https://images.unsplash.com/photo-1597843786411-a7fa8ad44a95?w=600",
+      description: "수익 전액이 보호소를 후원해요.", supports_shelter: true },
+  ];
+
+  let allItems = [];
+  let activeCat = "전체";
+
+  function won(n){ return n.toLocaleString("ko-KR") + "원"; }
+
+  function showToast(msg){
+    toast.textContent = msg; toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 1600);
+  }
+
+  function renderFilters(){
+    const cats = ["전체", ...Array.from(new Set(allItems.map((p) => p.category)))];
+    filtersEl.innerHTML = cats
+      .map((c) => `<button class="chip ${c === activeCat ? "active" : ""}" data-cat="${c}">${c}</button>`)
+      .join("");
+    filtersEl.querySelectorAll(".chip").forEach((b) => {
+      b.addEventListener("click", () => { activeCat = b.dataset.cat; renderFilters(); renderGrid(); });
+    });
+  }
+
+  function renderGrid(){
+    const items = activeCat === "전체" ? allItems : allItems.filter((p) => p.category === activeCat);
+    if (!items.length){ grid.innerHTML = '<div class="empty">상품이 곧 준비될 거예요 🐾</div>'; return; }
+    grid.innerHTML = items.map((p) => {
+      const photo = p.image_url
+        ? `<img src="${p.image_url}" alt="${p.name}" onerror="this.style.display='none'"/>`
+        : "";
+      const tag = p.supports_shelter ? '<span class="support-tag">💛 보호소 후원</span>' : "";
+      return `
+      <div class="pcard">
+        <div class="pphoto">${photo}${tag}</div>
+        <div class="pbody">
+          <div class="pcat">${p.category}</div>
+          <h3>${p.name}</h3>
+          <div class="desc">${p.description || ""}</div>
+          <div class="prow">
+            <span class="price">${won(p.price)}</span>
+            <button class="btn" data-name="${p.name}">담기</button>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+    grid.querySelectorAll(".btn").forEach((b) => {
+      b.addEventListener("click", () => showToast(b.dataset.name + " — 장바구니는 준비 중이에요 🛒"));
+    });
+  }
+
+  function render(items){ allItems = items; renderFilters(); renderGrid(); }
+
+  // 먼저 데모로 그린 뒤, 백엔드 성공 시 실제 데이터로 교체
+  render(DEMO);
+  badge("loading");
+  (async function(){
+    try {
+      const items = await pawFetch("/shop/products");
+      if (items && items.length){ render(items); }
+      badge("live");
+    } catch (e) {
+      badge("demo");
+    }
+  })();
+</script>
+</body>
+</html>
