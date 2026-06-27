@@ -188,6 +188,29 @@
     }
   }
 
+  // 보호소 직원/관리자에게만 보이는 추가 네비 링크를 주입합니다.
+  //  - 일반 사용자 화면은 깔끔하게 유지하고, 직원에게만 운영 메뉴를 노출.
+  function staffNav() {
+    const u = getUser();
+    if (!u || (u.role !== "shelter_staff" && u.role !== "admin")) return;
+    document.querySelectorAll(".navlinks").forEach((nav) => {
+      if (nav.dataset.staffInjected) return;
+      nav.dataset.staffInjected = "1";
+      const links = [
+        { href: "shelter-register.html", text: "강아지 등록" },
+        { href: "shelter-applicants.html", text: "입양 신청자" },
+      ];
+      const here = location.pathname.split("/").pop();
+      links.forEach((l) => {
+        const a = document.createElement("a");
+        a.href = l.href;
+        a.textContent = l.text;
+        if (l.href === here) a.className = "active";
+        nav.appendChild(a);
+      });
+    });
+  }
+
   // 전역으로 노출 (각 페이지 스크립트에서 사용)
   window.PawAPI = {
     API_BASE,
@@ -203,13 +226,18 @@
     getToken,
     getUser,
     authChip,
+    staffNav,
     ROLE_LABEL,
   };
 
-  // 모든 페이지에서 로그인 상태 칩을 자동 표시
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", authChip);
-  } else {
+  // 모든 페이지에서 로그인 상태 칩 + (직원이면) 운영 메뉴를 자동 표시
+  function initChrome() {
     authChip();
+    staffNav();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initChrome);
+  } else {
+    initChrome();
   }
 })();

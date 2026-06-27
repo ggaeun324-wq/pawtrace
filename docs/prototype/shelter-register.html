@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PawTrace — 강아지 등록 (보호소)</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF5EF; --card:#FFFFFF; --ink:#4A413B; --ink-soft:#94887F;
+    --peach:#F3D2C0; --coral:#E8836A; --coral-deep:#D96E55; --mint:#CCE7DF;
+    --mint-deep:#9BCFC0; --sun:#F2DEAE; --lilac:#E2D5F1; --shadow:0 12px 28px rgba(200,140,110,.14);
+    --shadow-sm:0 6px 15px rgba(150,120,100,.10); --r:26px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard',system-ui,sans-serif;background:
+       radial-gradient(1200px 600px at 80% -10%, #F5E4D8 0%, transparent 60%),
+       radial-gradient(900px 500px at 0% 10%, #E2F1EB 0%, transparent 55%),
+       var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 60px}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;text-decoration:none;color:var(--ink)}
+  .logo .paw{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
+       background:linear-gradient(135deg,var(--peach),var(--coral));font-size:20px;box-shadow:var(--shadow-sm)}
+  .navlinks{display:flex;gap:8px;flex-wrap:wrap}
+  .navlinks a{color:var(--ink-soft);text-decoration:none;font-weight:600;font-size:15px;
+       padding:9px 16px;border-radius:999px;transition:.2s}
+  .navlinks a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .navlinks a.active{background:var(--ink);color:#fff}
+  .head{text-align:center;margin:14px 0 22px}
+  .head .pill{display:inline-block;background:var(--lilac);padding:6px 16px;border-radius:999px;
+       box-shadow:var(--shadow-sm);font-weight:800;color:#6b4ea3;margin-bottom:12px}
+  .head h1{font-size:28px;font-weight:800;letter-spacing:-1px}
+  .head p{color:var(--ink-soft);font-weight:600;margin-top:4px;font-size:14.5px}
+  .card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:24px;margin-top:20px}
+  .card h2{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .card p.desc{color:var(--ink-soft);font-size:13.5px;margin-bottom:16px}
+  .step{display:inline-block;background:var(--mint);color:#2f7d68;font-weight:800;font-size:12px;
+       padding:5px 12px;border-radius:999px;margin-bottom:10px}
+  label{display:block;font-weight:700;font-size:14px;margin:14px 0 6px}
+  input[type=text],textarea,select{width:100%;border:2px solid #F0E4DA;border-radius:14px;
+       padding:12px 14px;font-family:inherit;font-size:14.5px;color:var(--ink);background:#fff}
+  textarea{min-height:90px;resize:vertical}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--mint-deep)}
+  .drop{border:2px dashed #E3D2C2;border-radius:18px;padding:22px;text-align:center;cursor:pointer;
+       background:#FFFaf5;transition:.2s}
+  .drop:hover{border-color:var(--mint-deep);background:#F6FBF9}
+  .drop img{max-height:170px;border-radius:14px;margin-top:10px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:560px){.row2{grid-template-columns:1fr}}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;
+       padding:13px 22px;border-radius:16px;transition:.18s transform;margin-top:18px}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-primary{background:linear-gradient(135deg,var(--coral),var(--coral-deep));color:#fff;box-shadow:var(--shadow)}
+  .btn-mint{background:linear-gradient(135deg,var(--mint-deep),#7fbfae);color:#fff;box-shadow:var(--shadow)}
+  .btn-ghost{background:#F3EEE8;color:var(--ink-soft)}
+  .kw{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .kw .tag{background:#FFF3EC;color:var(--coral-deep);font-weight:700;font-size:12.5px;
+       padding:7px 13px;border-radius:999px;display:flex;align-items:center;gap:6px}
+  .kw .tag b{cursor:pointer;color:#c98a76}
+  .ai-note{background:#FFF6EE;border:1px dashed #EAD7C6;border-radius:16px;padding:14px 16px;
+       font-size:12.8px;color:var(--ink-soft);line-height:1.55;margin-top:14px}
+  .toast{font-size:13px;color:#3f6b5e;background:#E3F1EB;display:none;padding:8px 14px;
+       border-radius:999px;margin-top:12px}
+  .toast.show{display:inline-block}
+  .hidden{display:none}
+  .guard{text-align:center;background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);
+       padding:44px 24px;margin-top:30px}
+  .guard a{color:var(--coral-deep);font-weight:800;text-decoration:none}
+  .saved-list{display:grid;gap:10px;margin-top:6px}
+  .saved-item{display:flex;align-items:center;gap:12px;background:#F8F1EA;border-radius:14px;padding:12px 16px}
+  .saved-item .nm{font-weight:800}
+  .saved-item .meta{font-size:12.5px;color:var(--ink-soft)}
+  .saved-item a{margin-left:auto;color:var(--coral-deep);font-weight:700;text-decoration:none;font-size:13px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a class="logo" href="index.html"><span class="paw">🐾</span> PawTrace</a>
+      <div class="navlinks">
+        <a href="index.html">오늘의 친구</a>
+        <a href="map.html">보호소 지도</a>
+        <a href="happyending.html">해피엔딩</a>
+      </div>
+    </nav>
+
+    <!-- 권한 가드 -->
+    <div id="guard" class="guard" style="display:none">
+      <div style="font-size:40px">🔒</div>
+      <h2 style="margin-top:10px">보호소 직원 전용 화면이에요</h2>
+      <p style="color:var(--ink-soft);margin:8px 0 4px">보호소/관리자 계정으로 로그인해 주세요.</p>
+      <a href="login.html">로그인 하러 가기 →</a>
+    </div>
+
+    <div id="content" style="display:none">
+      <div class="head">
+        <span class="pill">🛟 Shelter AI Assistant</span>
+        <h1>강아지를 등록해요</h1>
+        <p>사진과 간단한 힌트를 주시면 AI가 소개 초안을 만들어 드려요. <b>꼭 확인·수정한 뒤</b> 저장돼요.</p>
+      </div>
+
+      <!-- STEP 1: 사진 + 힌트 → AI 초안 -->
+      <div class="card">
+        <span class="step">STEP 1 · AI 초안 만들기</span>
+        <h2>📸 사진 업로드 &amp; 힌트</h2>
+        <p class="desc">사진은 선택이에요. 품종·색상·성격 힌트를 적으면 초안이 더 자연스러워져요.</p>
+
+        <div class="drop" id="drop">
+          <div id="dropText">📷 클릭해서 강아지 사진을 올려주세요 (선택)</div>
+          <img id="preview" class="hidden" alt="미리보기" />
+        </div>
+        <input type="file" id="photo" accept="image/*" class="hidden" />
+
+        <div class="row2">
+          <div><label>이름</label><input type="text" id="h_name" placeholder="예) 콩이" /></div>
+          <div><label>품종 힌트 (추정)</label><input type="text" id="h_breed" placeholder="예) 진돗개 / 믹스" /></div>
+        </div>
+        <div class="row2">
+          <div><label>털 색상 힌트</label><input type="text" id="h_color" placeholder="예) 갈색 / 검정 / 흰색" /></div>
+          <div><label>성격 힌트</label><input type="text" id="h_temper" placeholder="예) 사람을 좋아하고 활발해요" /></div>
+        </div>
+        <button class="btn btn-mint" id="genBtn">🤖 AI 초안 생성하기</button>
+      </div>
+
+      <!-- STEP 2: 초안 확인/수정 + 저장 -->
+      <div class="card hidden" id="draftCard">
+        <span class="step">STEP 2 · 확인하고 수정하기</span>
+        <h2>✏️ 소개 초안 확인</h2>
+        <p class="desc">AI 초안을 보호소가 보는 실제 모습에 맞게 자유롭게 고쳐주세요.</p>
+
+        <div class="row2">
+          <div><label>이름</label><input type="text" id="d_name" /></div>
+          <div><label>품종 (추정)</label><input type="text" id="d_breed" /></div>
+        </div>
+        <div class="row2">
+          <div><label>나이 (추정)</label><input type="text" id="d_age" placeholder="예) 추정 2살" /></div>
+          <div>
+            <label>성별</label>
+            <select id="d_gender">
+              <option value="">선택</option>
+              <option value="female">여아</option>
+              <option value="male">남아</option>
+              <option value="unknown">미상</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label>중성화</label>
+            <select id="d_neuter">
+              <option value="">선택</option>
+              <option value="true">완료</option>
+              <option value="false">전</option>
+            </select>
+          </div>
+          <div><label>성격 키워드</label><div class="kw" id="d_keywords"></div></div>
+        </div>
+
+        <label>소개글</label>
+        <textarea id="d_story"></textarea>
+        <input type="hidden" id="d_thumb" />
+
+        <div class="ai-note" id="aiNote"></div>
+
+        <button class="btn btn-primary" id="saveBtn">✅ 확인했어요 — 저장하기</button>
+        <button class="btn btn-ghost" id="cancelBtn">다시 만들기</button>
+        <span class="toast" id="saveToast">강아지를 등록했어요 🐾</span>
+      </div>
+
+      <!-- 내 보호소 강아지 목록 -->
+      <div class="card">
+        <h2>🏠 우리 보호소 강아지</h2>
+        <p class="desc">최근 등록 순이에요.</p>
+        <div class="saved-list" id="savedList"><div class="meta" style="color:var(--ink-soft)">불러오는 중…</div></div>
+      </div>
+    </div>
+  </div>
+
+<script src="api.js"></script>
+<script>
+  const { API_BASE, pawSend, getToken, getUser } = window.PawAPI;
+  const u = getUser();
+  let keywords = [];
+
+  if (!u || (u.role !== "shelter_staff" && u.role !== "admin")) {
+    document.getElementById("guard").style.display = "block";
+  } else {
+    document.getElementById("content").style.display = "block";
+    loadList();
+  }
+
+  // 사진 선택 + 미리보기
+  const photoInput = document.getElementById("photo");
+  document.getElementById("drop").addEventListener("click", () => photoInput.click());
+  photoInput.addEventListener("change", () => {
+    const f = photoInput.files[0];
+    if (!f) return;
+    const img = document.getElementById("preview");
+    img.src = URL.createObjectURL(f);
+    img.classList.remove("hidden");
+    document.getElementById("dropText").textContent = "✅ " + f.name + " (다시 선택하려면 클릭)";
+  });
+
+  // STEP 1 → AI 초안 (multipart 직접 호출)
+  document.getElementById("genBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("genBtn");
+    btn.disabled = true; btn.textContent = "🤖 초안 만드는 중…";
+    try {
+      const fd = new FormData();
+      const f = photoInput.files[0];
+      if (f) fd.append("photo", f);
+      fd.append("name", document.getElementById("h_name").value.trim());
+      fd.append("breed_hint", document.getElementById("h_breed").value.trim());
+      fd.append("color_hint", document.getElementById("h_color").value.trim());
+      fd.append("temperament_hint", document.getElementById("h_temper").value.trim());
+      const headers = {};
+      if (getToken()) headers["Authorization"] = "Bearer " + getToken();
+      const res = await fetch(API_BASE + "/shelter/dogs/ai-draft", { method: "POST", headers, body: fd });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const draft = await res.json();
+      fillDraft(draft);
+    } catch (e) {
+      alert("초안 생성에 실패했어요: " + e.message);
+    } finally {
+      btn.disabled = false; btn.textContent = "🤖 AI 초안 생성하기";
+    }
+  });
+
+  function fillDraft(d) {
+    document.getElementById("draftCard").classList.remove("hidden");
+    document.getElementById("d_name").value = document.getElementById("h_name").value.trim() || "";
+    document.getElementById("d_breed").value = d.breed_label || "";
+    document.getElementById("d_story").value = d.intro || "";
+    document.getElementById("d_thumb").value = d.thumbnail_url || "";
+    document.getElementById("aiNote").textContent = "🤖 " + d.note;
+    keywords = [...(d.personality_keywords || [])];
+    renderKeywords();
+    document.getElementById("draftCard").scrollIntoView({ behavior: "smooth" });
+  }
+
+  function renderKeywords() {
+    document.getElementById("d_keywords").innerHTML = keywords
+      .map((k, i) => `<span class="tag">${k} <b data-i="${i}">✕</b></span>`)
+      .join("") || '<span class="meta" style="color:var(--ink-soft);font-size:12.5px">키워드 없음</span>';
+    document.querySelectorAll("#d_keywords b").forEach((b) =>
+      b.addEventListener("click", () => { keywords.splice(+b.dataset.i, 1); renderKeywords(); })
+    );
+  }
+
+  // STEP 2 → 저장
+  document.getElementById("saveBtn").addEventListener("click", async () => {
+    const name = document.getElementById("d_name").value.trim();
+    if (!name) { alert("이름을 입력해 주세요."); return; }
+    const neuterVal = document.getElementById("d_neuter").value;
+    let story = document.getElementById("d_story").value.trim();
+    if (keywords.length) story += "\n\n성격 키워드: " + keywords.join(", ");
+    const payload = {
+      name,
+      breed_label: document.getElementById("d_breed").value.trim() || null,
+      breed_is_estimate: true,
+      age_estimate: document.getElementById("d_age").value.trim() || null,
+      gender: document.getElementById("d_gender").value || null,
+      is_neutered: neuterVal === "" ? null : neuterVal === "true",
+      story: story || null,
+      thumbnail_url: document.getElementById("d_thumb").value || null,
+    };
+    try {
+      await pawSend("/shelter/dogs", "POST", payload, true);
+      const t = document.getElementById("saveToast");
+      t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2500);
+      document.getElementById("draftCard").classList.add("hidden");
+      resetStep1();
+      loadList();
+    } catch (e) {
+      alert("저장에 실패했어요: " + e.message);
+    }
+  });
+
+  document.getElementById("cancelBtn").addEventListener("click", () => {
+    document.getElementById("draftCard").classList.add("hidden");
+  });
+
+  function resetStep1() {
+    ["h_name", "h_breed", "h_color", "h_temper"].forEach((id) => (document.getElementById(id).value = ""));
+    photoInput.value = "";
+    document.getElementById("preview").classList.add("hidden");
+    document.getElementById("dropText").textContent = "📷 클릭해서 강아지 사진을 올려주세요 (선택)";
+  }
+
+  async function loadList() {
+    try {
+      const dogs = await pawSend("/shelter/dogs", "GET", null, true);
+      const box = document.getElementById("savedList");
+      if (!dogs.length) { box.innerHTML = '<div class="meta" style="color:var(--ink-soft)">아직 등록한 강아지가 없어요.</div>'; return; }
+      const STATUS = { protected: "보호중", available: "입양 가능", reserved: "예약됨", adopted: "입양 완료" };
+      box.innerHTML = dogs
+        .map((d) => `
+          <div class="saved-item">
+            <div>
+              <div class="nm">${d.name}</div>
+              <div class="meta">${d.breed_label || "믹스(추정)"} · ${STATUS[d.adoption_status] || d.adoption_status}</div>
+            </div>
+            <a href="passport.html?dog=${d.id}">여권 보기 →</a>
+          </div>`)
+        .join("");
+    } catch (e) {
+      document.getElementById("savedList").innerHTML =
+        '<div class="meta" style="color:var(--ink-soft)">목록을 불러오지 못했어요.</div>';
+    }
+  }
+</script>
+</body>
+</html>

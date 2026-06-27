@@ -98,3 +98,74 @@ def trust_summary(facts: dict) -> str:
 
     parts.append("이 요약은 참고용 활동 정리이며, 최종 판단은 보호소에서 해주세요.")
     return " ".join(parts)
+
+
+# Shelter AI Assistant — 강아지 등록 보조용 키워드 풀(중립적 표현).
+_TEMPERAMENT_MAP = {
+    "활발": "활발한",
+    "에너지": "에너지가 넘치는",
+    "온순": "온순한",
+    "차분": "차분한",
+    "조용": "조용한",
+    "애교": "애교 많은",
+    "사람": "사람을 잘 따르는",
+    "겁": "조심성 있는",
+    "소심": "낯을 조금 가리는",
+    "호기심": "호기심 많은",
+}
+
+
+def dog_intro_draft(hints: dict) -> dict:
+    """보호소 직원의 강아지 등록을 돕는 '초안'을 생성합니다(자동 게시 아님).
+
+    원칙:
+    - 결과는 어디까지나 '초안'이며, 보호소 직원이 반드시 확인/수정 후 저장합니다.
+    - 외형·성격은 추정(estimate)으로 표기하고 단정하지 않습니다.
+    - 강아지를 점수화하거나 입양을 유도/과장하는 표현을 쓰지 않습니다.
+
+    실제 운영에서는 사진을 Bedrock 비전 모델로 분석하지만,
+    키가 없으면 직원이 입력한 힌트를 바탕으로 규칙 기반 초안을 만듭니다.
+    """
+    name = (hints.get("name") or "").strip() or "이 친구"
+    breed = (hints.get("breed_hint") or "").strip() or "믹스"
+    color = (hints.get("color_hint") or "").strip()
+    temperament = (hints.get("temperament_hint") or "").strip()
+
+    # 외형 초안(추정). 색상 힌트가 있으면 반영, 없으면 직원이 채우도록 안내.
+    appearance_bits = []
+    if color:
+        appearance_bits.append(f"{color} 계열의 털")
+    appearance_bits.append(f"{breed}(품종 추정)")
+    appearance = " · ".join(appearance_bits)
+
+    # 성격 키워드 초안. 힌트 키워드를 중립 표현으로 변환, 없으면 기본 세트.
+    keywords: list[str] = []
+    for key, label in _TEMPERAMENT_MAP.items():
+        if key in temperament:
+            keywords.append(label)
+    if not keywords:
+        keywords = ["사람을 잘 따르는", "새로운 환경에 적응 중인"]
+    keywords = list(dict.fromkeys(keywords))[:4]  # 중복 제거 + 최대 4개
+
+    personality_phrase = ", ".join(keywords)
+    intro = (
+        f"{name}은(는) {appearance} 강아지예요. "
+        f"{personality_phrase} 모습을 보여요(성격은 추정이에요). "
+        "새로운 가족과 천천히 신뢰를 쌓아갈 친구랍니다."
+    )
+
+    note = (
+        "이 결과는 AI가 만든 '초안'이에요. 실제 모습과 다를 수 있으니 "
+        "보호소에서 외형·성격·소개글을 꼭 확인하고 수정한 뒤 저장해 주세요. "
+        "AI는 강아지를 점수화하거나 입양을 단정하지 않아요."
+    )
+
+    return {
+        "breed_label": breed,
+        "breed_is_estimate": True,
+        "color": color or None,
+        "appearance": appearance,
+        "intro": intro,
+        "personality_keywords": keywords,
+        "note": note,
+    }

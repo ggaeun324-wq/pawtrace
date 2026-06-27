@@ -6,6 +6,8 @@ uvicorn[standard]==0.30.6
 pydantic==2.9.2
 pydantic-settings==2.5.2
 email-validator==2.2.0
+# - 파일 업로드(multipart/form-data) 파서 — Shelter AI Assistant 사진 업로드용
+python-multipart==0.0.12
 # - DB (PostgreSQL + PostGIS). 기동 시 Alembic 마이그레이션 + 시드로 DB 에서 동작합니다.
 sqlalchemy==2.0.35
 geoalchemy2==0.15.2
