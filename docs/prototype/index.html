@@ -36,6 +36,9 @@
        font-weight:800;color:var(--coral-deep);margin-bottom:14px;font-size:15px}
   .friend-label .pill{background:#fff;padding:6px 14px;border-radius:999px;box-shadow:var(--shadow-sm)}
   .urgent-note{text-align:center;color:var(--ink-soft);font-weight:600;font-size:14px;margin:-4px 0 18px}
+  /* '오늘의 공고' 섹션은 본문(1080px)보다 넓게 빼서 카드/화살표가 양옆으로 더 나오게 합니다. */
+  .urgent-section{width:min(1320px,94vw);margin-left:50%;transform:translateX(-50%)}
+  @media(max-width:860px){.urgent-section{width:100%;margin-left:0;transform:none}}
   .carousel{position:relative;display:flex;align-items:center;gap:8px}
   .rail{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;
        padding:4px 4px 16px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;flex:1;
@@ -143,6 +146,7 @@
     <p>Every Story Deserves a Home. <span class="heart">♥</span></p>
   </div>
 
+  <div class="urgent-section">
   <div class="friend-label"><span class="pill">⏰ 지금 가족이 필요한 아이들</span></div>
   <p class="urgent-note" id="urgentNote">보호 공고 마감이 가까워, 새로운 가족의 손길을 기다리는 친구들이에요. 화살표로 넘겨 만나보세요</p>
 
@@ -203,6 +207,7 @@
       </div>
     </div>
     <button class="arrow" id="urgentNext" aria-label="다음">›</button>
+  </div>
   </div>
 
   <section>

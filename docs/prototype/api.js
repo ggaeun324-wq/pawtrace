@@ -195,7 +195,7 @@
   const NAV_TABS = [
     { href: "index.html", text: "오늘의 친구" },
     { href: "map.html", text: "보호소 지도" },
-    { href: "happyending.html", text: "해피~ing" },
+    { href: "happyending.html", text: "해피ing" },
     { href: "shop.html", text: "쇼핑몰" },
   ];
   // 세부 페이지 → 활성 표시할 상위 탭 매핑
