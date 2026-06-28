@@ -10,6 +10,7 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core import cache
 from app.domain import DataSource, TransparencyLevel
 from app.integrations import geocoding, public_data
 from app.models import Dog, Shelter
@@ -98,6 +99,8 @@ def upsert_records(db: Session, records: list[dict]) -> dict:
     except Exception:
         db.rollback()
         raise
+    # 강아지 데이터가 바뀌었으니 '오늘의 공고' 캐시를 무효화합니다.
+    cache.delete(cache.URGENT_DOGS_KEY)
     return {
         "shelters_upserted": len(shelters_seen),
         "dogs_total": dogs_total,
