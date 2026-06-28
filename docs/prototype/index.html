@@ -39,6 +39,19 @@
   /* '오늘의 공고' 섹션은 본문(1080px)보다 넓게 빼서 카드/화살표가 양옆으로 더 나오게 합니다. */
   .urgent-section{width:min(1320px,94vw);margin-left:50%;transform:translateX(-50%)}
   @media(max-width:860px){.urgent-section{width:100%;margin-left:0;transform:none}}
+  /* 홈 지도: 흰 카드 없이 대한민국 지도 이미지만, 모서리 둥글게. */
+  .home-map-section{margin:36px 0 6px}
+  .home-map{position:relative;width:min(560px,100%);aspect-ratio:770/690;margin:8px auto 0;
+    background:url(korea_kr.png) center/contain no-repeat;border-radius:var(--r);overflow:hidden}
+  .hm-region{position:absolute;transform:translate(-50%,-50%);min-width:48px;padding:6px 8px;
+    border-radius:14px;background:rgba(255,255,255,.92);box-shadow:var(--shadow-sm);cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    transition:.16s;border:2px solid transparent;text-decoration:none;color:var(--ink)}
+  .hm-region:hover{transform:translate(-50%,-50%) translateY(-3px) scale(1.08);
+    border-color:var(--coral);background:#fff;box-shadow:var(--shadow);z-index:5}
+  .hm-region b{font-size:12px;font-weight:800;line-height:1.1}
+  .hm-region span{font-size:9.5px;color:var(--ink-soft);font-weight:700}
+  .hm-region.hot{background:rgba(208,240,229,.95)}
   .carousel{position:relative;display:flex;align-items:center;gap:8px}
   .rail{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;
        padding:4px 4px 16px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;flex:1;
@@ -210,6 +223,12 @@
   </div>
   </div>
 
+  <section class="home-map-section">
+    <div class="friend-label"><span class="pill">🗺️ 우리 동네 보호소 찾기</span></div>
+    <p class="urgent-note">지역을 누르면 그 지역의 보호소와 함께 사는 아이들을 자세히 볼 수 있어요</p>
+    <div class="home-map" id="homeMap"></div>
+  </section>
+
   <section>
     <div class="sec-head">
       <h3>🐾 Pet Passport</h3>
@@ -364,6 +383,38 @@
         '<div class="step future"><div class="ic">👨‍👩‍👧</div><b>가족 만남</b><span>곧</span></div>';
     } catch (e) {
       // 타임라인은 데모 데이터 유지
+    }
+
+    // 3) 홈 지도: 시·도 버블을 그리고 보호소/입양가능 수를 API 로 채웁니다.
+    const REGIONS = [
+      { k: "인천", l: 34, t: 16 }, { k: "서울", l: 43, t: 15 }, { k: "경기", l: 50, t: 13 },
+      { k: "강원", l: 70, t: 12 }, { k: "충남", l: 36, t: 33 }, { k: "세종", l: 47, t: 33 },
+      { k: "충북", l: 58, t: 28 }, { k: "대전", l: 49, t: 41 }, { k: "경북", l: 68, t: 34 },
+      { k: "대구", l: 63, t: 45 }, { k: "전북", l: 40, t: 46 }, { k: "울산", l: 80, t: 50 },
+      { k: "경남", l: 60, t: 57 }, { k: "광주", l: 34, t: 58 }, { k: "전남", l: 41, t: 66 },
+      { k: "부산", l: 72, t: 58 }, { k: "제주", l: 30, t: 93 },
+    ];
+    const homeMap = document.getElementById("homeMap");
+    function renderMap(counts) {
+      // region(단축명) → {shelter_count, available_dog_count}
+      const byRegion = {};
+      (counts || []).forEach((c) => (byRegion[c.region] = c));
+      homeMap.innerHTML = REGIONS.map((r) => {
+        const c = byRegion[r.k];
+        const n = c ? c.shelter_count : 0;
+        const hot = n >= 5 ? " hot" : "";
+        const label = n > 0 ? n + "곳" : "준비중";
+        return `<a class="hm-region${hot}" style="left:${r.l}%;top:${r.t}%"
+                   href="map.html?region=${encodeURIComponent(r.k)}">
+                  <b>${r.k}</b><span>${label}</span></a>`;
+      }).join("");
+    }
+    renderMap([]); // 먼저 버블만 그려두고(이미지 위), API 성공 시 숫자 채움
+    try {
+      const counts = await pawFetch("/shelters/region-counts");
+      renderMap(counts);
+    } catch (e) {
+      // API 미연결 시 '준비중' 라벨 유지
     }
   })();
 </script>

@@ -230,6 +230,20 @@
     stepRegion.style.display='block';
     window.scrollTo({top:0,behavior:'smooth'});
   });
+
+  // 홈 지도에서 ?region=서울 으로 들어오면 해당 지역 상세를 바로 엽니다.
+  (function openFromQuery(){
+    const r = new URLSearchParams(location.search).get('region');
+    if (!r) return;
+    const el = document.querySelector('.region[data-r="' + r + '"]');
+    if (el) { el.click(); return; }
+    // 지도에 없는 지역명이어도 상세로 진입(목록은 API 로 로드)
+    regionName.textContent = r;
+    document.querySelectorAll('.rprefix').forEach(p=>p.textContent = r);
+    stepRegion.style.display='none';
+    stepDetail.style.display='block';
+    loadShelters(r);
+  })();
 </script>
 </body>
 </html>

@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.shelter import ShelterDetail, ShelterSummary
+from app.schemas.shelter import RegionCount, ShelterDetail, ShelterSummary
 from app.services import shelter_service
 
 router = APIRouter()
@@ -18,6 +18,12 @@ router = APIRouter()
 @router.get("", response_model=list[ShelterSummary])
 def list_shelters(db: Annotated[Session, Depends(get_db)], region: str | None = None):
     return shelter_service.list_shelters(db, region)
+
+
+@router.get("/region-counts", response_model=list[RegionCount])
+def region_counts(db: Annotated[Session, Depends(get_db)]):
+    """홈 지도용 시·도별 보호소/입양가능 강아지 집계."""
+    return shelter_service.region_counts(db)
 
 
 @router.get("/{shelter_id}", response_model=ShelterDetail)

@@ -23,3 +23,11 @@ class ShelterDetail(ShelterSummary):
     description: str | None = None
     phone: str | None = None
     gov_reg_no: str | None = None
+
+
+class RegionCount(BaseModel):
+    """홈 지도용 시·도별 집계(보호소 수 + 입양가능 강아지 수)."""
+
+    region: str                       # 시·도 단축명 (예: "서울", "경기")
+    shelter_count: int = 0
+    available_dog_count: int = 0
