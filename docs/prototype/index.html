@@ -168,7 +168,7 @@
     <div class="rail" id="urgentRail">
       <div class="ucard">
         <div class="uphoto">
-          <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=700&q=80"
+          <img src="samples/dog1.jpg"
                alt="강아지" onerror="this.style.display='none'"/>
           <div class="dday" style="background:#FF6B6B">보호 마감 D-3</div>
         </div>
@@ -181,7 +181,7 @@
       </div>
       <div class="ucard">
         <div class="uphoto">
-          <img src="https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=700&q=80"
+          <img src="samples/dog2.jpg"
                alt="강아지" onerror="this.style.display='none'"/>
           <div class="dday" style="background:#F5A623">보호 마감 D-5</div>
         </div>
@@ -194,7 +194,7 @@
       </div>
       <div class="ucard">
         <div class="uphoto">
-          <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=700&q=80"
+          <img src="samples/dog3.jpg"
                alt="강아지" onerror="this.style.display='none'"/>
           <div class="dday" style="background:#F5A623">보호 마감 D-6</div>
         </div>
@@ -207,7 +207,7 @@
       </div>
       <div class="ucard">
         <div class="uphoto">
-          <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=80"
+          <img src="samples/dog4.jpg"
                alt="강아지" onerror="this.style.display='none'"/>
           <div class="dday" style="background:#5FB58E">보호 마감 D-9</div>
         </div>
@@ -272,10 +272,10 @@
     <div class="sec-head"><h3>💌 Happy Endings</h3>
       <p>입양은 끝이 아니라 시작이에요</p></div>
     <div class="happy">
-      <div class="he"><div class="ph"><img src="https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=400&q=70" onerror="this.style.display='none'"></div><div class="cap"><b>콩이네 가족</b><span>입양 6개월 · 행복해요</span></div></div>
-      <div class="he"><div class="ph"><img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=400&q=70" onerror="this.style.display='none'"></div><div class="cap"><b>모카</b><span>첫 산책 기념 📸</span></div></div>
-      <div class="he"><div class="ph"><img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=400&q=70" onerror="this.style.display='none'"></div><div class="cap"><b>두부</b><span>가족이 된 지 1년 🎂</span></div></div>
-      <div class="he"><div class="ph"><img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=400&q=70" onerror="this.style.display='none'"></div><div class="cap"><b>초코</b><span>바닷가 첫 여행 🌊</span></div></div>
+      <div class="he"><div class="ph"><img src="samples/dog2.jpg" onerror="this.style.display='none'"></div><div class="cap"><b>콩이네 가족</b><span>입양 6개월 · 행복해요</span></div></div>
+      <div class="he"><div class="ph"><img src="samples/dog3.jpg" onerror="this.style.display='none'"></div><div class="cap"><b>모카</b><span>첫 산책 기념 📸</span></div></div>
+      <div class="he"><div class="ph"><img src="samples/dog4.jpg" onerror="this.style.display='none'"></div><div class="cap"><b>두부</b><span>가족이 된 지 1년 🎂</span></div></div>
+      <div class="he"><div class="ph"><img src="samples/dog6.jpg" onerror="this.style.display='none'"></div><div class="cap"><b>초코</b><span>바닷가 첫 여행 🌊</span></div></div>
     </div>
   </section>
 
@@ -293,14 +293,14 @@
     const { pawFetch, badge, LABELS, dogMeta } = window.PawAPI;
     badge("loading");
 
-    // 썸네일이 없는 공공데이터/시드 강아지를 위한 예시 사진 풀(둥글둥글 따뜻한 톤)
+    // 썸네일이 없는 공공데이터/시드 강아지를 위한 예시 사진 풀(로컬 번들 — 항상 표시됨)
     const SAMPLE_PHOTOS = [
-      "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=700&q=80",
-      "https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=700&q=80",
-      "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?auto=format&fit=crop&w=700&q=80",
-      "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=700&q=80",
-      "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=700&q=80",
-      "https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?auto=format&fit=crop&w=700&q=80",
+      "samples/dog1.jpg",
+      "samples/dog2.jpg",
+      "samples/dog3.jpg",
+      "samples/dog4.jpg",
+      "samples/dog5.jpg",
+      "samples/dog6.jpg",
     ];
 
     // 1) 보호 마감 임박 강아지 캐러셀
@@ -317,8 +317,9 @@
     }
     function card(dog, i) {
       const color = ddayColor(dog.days_left);
-      const src = dog.thumbnail_url || SAMPLE_PHOTOS[i % SAMPLE_PHOTOS.length];
-      const img = `<img src="${src}" alt="${dog.name}" onerror="this.style.display='none'"/>`;
+      const fallback = SAMPLE_PHOTOS[i % SAMPLE_PHOTOS.length];
+      const src = dog.thumbnail_url || fallback;
+      const img = `<img src="${src}" alt="${dog.name}" loading="lazy" onerror="this.onerror=null;this.src='${fallback}'"/>`;
       return `<div class="ucard">
         <div class="uphoto">${img}<div class="dday" style="background:${color}">${ddayText(dog.days_left)}</div></div>
         <div class="ubody">
