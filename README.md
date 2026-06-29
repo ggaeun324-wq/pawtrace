@@ -9,6 +9,12 @@
 
 📘 **처음 보시나요? → [전체 구조 학습 가이드 (docs/LEARNING.md)](docs/LEARNING.md)** 에서 아키텍처 전체를 쉬운 용어로 설명합니다.
 
+<br/>
+
+![PawTrace 홈 화면 동작 흐름](docs/home-demo.gif)
+
+*공고 마감이 가까운 친구들 → 대한민국 보호소 지도 → 보호소 지도 탭 → 해피ing 까지의 실제 동작 흐름*
+
 </div>
 
 ---
@@ -66,7 +72,7 @@ PawTrace는 **목록이 아니라 "이력과 신뢰"** 를 보여줍니다.
         ▼
 [ ALB ] → [ FastAPI on ECS Fargate ]
    │            ├──── [ Amazon RDS for PostgreSQL + PostGIS ]  (보호소/강아지/이력/신고)
-   │            ├──── [ Amazon ElastiCache (Redis) ]           (지도 검색 캐싱)
+   │            ├──── [ Amazon ElastiCache (Redis) ]           (오늘의 공고/지역 카운트 캐싱)
    │            └──── [ Amazon Bedrock ]                        (신고 분류 · 요약)
    │
    └──── [ Amazon S3 ]  (신고 이미지)
