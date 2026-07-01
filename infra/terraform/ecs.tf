@@ -118,6 +118,19 @@ resource "aws_ecs_service" "api" {
   desired_count   = var.desired_count
   launch_type     = "FARGATE"
 
+  # 배포 전략: 롤링 업데이트(ECS 기본 컨트롤러). CodeDeploy 블루/그린이 아님.
+  deployment_controller {
+    type = "ECS"
+  }
+  # 새 태스크를 먼저 띄운 뒤(최대 200%) 기존을 교체 → desired_count=1 에서도 무중단
+  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = 200
+  # 새 배포가 안정화에 실패하면 직전 정상 버전으로 자동 롤백
+  deployment_circuit_breaker {
+    enable   = true
+    rollback = true
+  }
+
   network_configuration {
     subnets         = aws_subnet.private[*].id
     security_groups = [aws_security_group.ecs.id]
