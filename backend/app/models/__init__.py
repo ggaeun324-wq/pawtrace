@@ -18,6 +18,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -408,4 +409,48 @@ class OrderItem(Base):
     unit_price: Mapped[int] = mapped_column(Integer)  # 주문 시점 단가(원)
 
     order: Mapped["Order"] = relationship(back_populates="items")
+    product: Mapped["Product"] = relationship()
+
+
+class Cart(Base):
+    """장바구니 — 사용자당 1개(활성). 결제 전 임시 상태를 영속 저장합니다.
+
+    DB 선택 이유(설계 결정):
+    - 장바구니는 '결제 전 담아둔 상태'라 기기/세션이 바뀌어도 유지돼야 하므로
+      영속 스토리지인 PostgreSQL 에 저장합니다(주문/재고와 같은 DB → 정합성·트랜잭션 용이).
+    - Redis 는 이미 조회 캐시로 쓰고 있고, 초고트래픽에서 장바구니를 Redis 로 옮기는 것은
+      '확장 카드'로 남겨둡니다(TTL 세션 장바구니). MVP 는 단순·정확을 우선합니다.
+    """
+
+    __tablename__ = "carts"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # 사용자당 활성 장바구니 1개 → user_id 유니크
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), unique=True, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+    items: Mapped[list["CartItem"]] = relationship(
+        back_populates="cart", cascade="all, delete-orphan"
+    )
+
+
+class CartItem(Base):
+    """장바구니 담긴 항목 — (cart, product) 조합은 유일(수량으로 합산)."""
+
+    __tablename__ = "cart_items"
+    __table_args__ = (
+        UniqueConstraint("cart_id", "product_id", name="uq_cart_product"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    cart_id: Mapped[int] = mapped_column(ForeignKey("carts.id"), index=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
+    quantity: Mapped[int] = mapped_column(Integer, default=1)
+
+    cart: Mapped["Cart"] = relationship(back_populates="items")
     product: Mapped["Product"] = relationship()

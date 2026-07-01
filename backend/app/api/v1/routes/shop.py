@@ -14,13 +14,17 @@ from sqlalchemy.orm import Session
 from app.core.security import CurrentUser
 from app.db.session import get_db
 from app.schemas.shop import (
+    CartItemIn,
+    CartItemUpdateIn,
+    CartOut,
+    CheckoutIn,
     CouponOut,
     ImpactOut,
     OrderCreateIn,
     OrderOut,
     ProductOut,
 )
-from app.services import coupon_service, shop_service
+from app.services import cart_service, coupon_service, shop_service
 
 router = APIRouter()
 
@@ -60,3 +64,51 @@ def list_coupons(
     db: Annotated[Session, Depends(get_db)],
 ):
     return coupon_service.list_my_coupons(db, user)
+
+
+# ── 장바구니(Cart) ──
+@router.get("/cart", response_model=CartOut)
+def get_cart(user: CurrentUser, db: Annotated[Session, Depends(get_db)]):
+    return cart_service.get_cart(db, user)
+
+
+@router.post("/cart/items", response_model=CartOut)
+def add_cart_item(
+    data: CartItemIn,
+    user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+):
+    return cart_service.add_item(db, user, data.product_id, data.quantity)
+
+
+@router.put("/cart/items/{product_id}", response_model=CartOut)
+def update_cart_item(
+    product_id: int,
+    data: CartItemUpdateIn,
+    user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+):
+    return cart_service.update_item(db, user, product_id, data.quantity)
+
+
+@router.delete("/cart/items/{product_id}", response_model=CartOut)
+def remove_cart_item(
+    product_id: int,
+    user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+):
+    return cart_service.remove_item(db, user, product_id)
+
+
+@router.delete("/cart", response_model=CartOut)
+def clear_cart(user: CurrentUser, db: Annotated[Session, Depends(get_db)]):
+    return cart_service.clear_cart(db, user)
+
+
+@router.post("/cart/checkout", response_model=OrderOut)
+def checkout_cart(
+    data: CheckoutIn,
+    user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+):
+    return cart_service.checkout(db, user, data.coupon_code)

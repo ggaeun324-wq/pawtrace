@@ -66,3 +66,36 @@ class ImpactOut(BaseModel):
     total_orders: int = 0
     total_sales: int = 0     # 결제 완료 주문 총액(원)
     total_donation: int = 0  # 보호소 후원 누적 적립(원)
+
+
+# ── 장바구니(Cart) ──
+class CartItemIn(BaseModel):
+    product_id: int
+    quantity: int = Field(default=1, ge=1, le=100)
+
+
+class CartItemUpdateIn(BaseModel):
+    quantity: int = Field(ge=0, le=100)  # 0 이면 항목 삭제
+
+
+class CartItemOut(BaseModel):
+    product_id: int
+    name: str
+    unit_price: int
+    quantity: int
+    line_total: int             # unit_price * quantity
+    image_url: str | None = None
+    donation_rate: int = 0
+
+
+class CartOut(BaseModel):
+    items: list[CartItemOut]
+    count: int = 0              # 담긴 상품 종류 수
+    subtotal: int = 0          # 합계(원)
+    estimated_donation: int = 0  # 예상 보호소 후원 적립(원)
+
+
+class CheckoutIn(BaseModel):
+    """장바구니 전체 결제 요청 — (선택) 쿠폰 코드."""
+
+    coupon_code: str | None = None

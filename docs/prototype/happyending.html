@@ -32,18 +32,20 @@
        box-shadow:var(--shadow-sm);font-weight:800;color:var(--coral-deep);margin-bottom:12px}
   .head h1{font-size:30px;font-weight:800;letter-spacing:-1px}
   .head p{color:var(--ink-soft);font-weight:600;margin-top:4px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}
+  .grid{display:flex;flex-direction:column;gap:24px;max-width:720px;margin:0 auto}
   .ecard{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;
        transition:.2s;text-decoration:none;color:inherit;display:flex;flex-direction:column}
   .ecard:hover{transform:translateY(-4px)}
-  .ephoto{height:160px;background:linear-gradient(135deg,var(--peach),var(--mint));
-       display:grid;place-items:center;font-size:54px;position:relative}
-  .badge-done{position:absolute;top:12px;right:12px;background:#fff;color:var(--coral-deep);
-       font-weight:800;font-size:12px;padding:6px 12px;border-radius:999px;box-shadow:var(--shadow-sm)}
-  .ebody{padding:18px 20px}
-  .ebody h3{font-size:19px;font-weight:800}
-  .ebody .meta{color:var(--ink-soft);font-size:13px;font-weight:600;margin:3px 0 10px}
-  .ebody .story{font-size:14px;color:var(--ink);line-height:1.7}
+  .ephoto{height:340px;background:linear-gradient(135deg,var(--peach),var(--mint));
+       display:grid;place-items:center;font-size:96px;position:relative}
+  .ephoto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .badge-done{position:absolute;top:14px;right:14px;background:#fff;color:var(--coral-deep);
+       font-weight:800;font-size:13px;padding:7px 14px;border-radius:999px;box-shadow:var(--shadow-sm)}
+  .ebody{padding:22px 26px 24px}
+  .ebody h3{font-size:23px;font-weight:800}
+  .ebody .meta{color:var(--ink-soft);font-size:13.5px;font-weight:600;margin:4px 0 12px}
+  .ebody .story{font-size:15.5px;color:var(--ink);line-height:1.8}
+  .ebody .more{display:inline-block;margin-top:14px;color:var(--coral-deep);font-weight:800;font-size:14px}
   .empty{text-align:center;padding:60px 20px;color:var(--ink-soft);font-weight:600}
 </style>
 </head>
@@ -94,17 +96,21 @@
       return;
     }
     grid.innerHTML = dogs
-      .map(
-        (d, i) => `
+      .map((d, i) => {
+        const photo = d.thumbnail_url
+          ? `<img src="${d.thumbnail_url}" alt="${d.name}" onerror="this.style.display='none'"/>`
+          : EMOJI[i % EMOJI.length];
+        return `
       <a class="ecard" href="happystory.html?id=${d.id}">
-        <div class="ephoto">${EMOJI[i % EMOJI.length]}<span class="badge-done">✓ 입양 완료</span></div>
+        <div class="ephoto">${photo}<span class="badge-done">✓ 가족을 만났어요</span></div>
         <div class="ebody">
           <h3>${d.name}</h3>
           <div class="meta">${dogMeta(d)}</div>
-          <div class="story">${d.story || ""}</div>
+          <div class="story">${d.story || "새 가족과 함께 행복한 하루하루를 보내고 있어요."}</div>
+          <span class="more">💛 입양 이야기 보기 →</span>
         </div>
-      </a>`
-      )
+      </a>`;
+      })
       .join("");
   }
 
