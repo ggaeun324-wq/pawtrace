@@ -27,6 +27,7 @@ from app.models import (
     PassportEvent,
     Product,
     QuizQuestion,
+    Seller,
     Shelter,
     User,
     UserProfile,
@@ -386,11 +387,25 @@ def seed_products() -> None:
     """쇼핑몰 데모 상품 시드(멱등). 이미 상품이 있으면 건너뜁니다.
 
     MVP 진열용 샘플입니다. 일부는 '수익 일부 보호소 후원' 상품으로 표시합니다.
+    판매자(소상공인/수제작가)와 재고·후원 비율(donation_rate)도 함께 시드해
+    결제→후원 적립 흐름과 부하테스트(쓰기·동시성)를 시연할 수 있게 합니다.
     """
     db = SessionLocal()
     try:
         if db.query(Product).count() > 0:
             return
+
+        # 판매자(소상공인/수제작가) — 매출 일부가 보호소 후원으로 이어집니다.
+        sellers = [
+            Seller(name="몽실 수제공방", contact="mongsil@example.com"),
+            Seller(name="댕댕이네 소상공인", contact="daeng@example.com"),
+            Seller(name="PawTrace 공식", contact="shop@pawtrace.dev"),
+        ]
+        for s in sellers:
+            db.add(s)
+        db.flush()  # seller.id 확보
+        mongsil, daeng, official = sellers[0].id, sellers[1].id, sellers[2].id
+
         items = [
             {
                 "name": "포근 강아지 방석 (라운드)",
@@ -399,6 +414,9 @@ def seed_products() -> None:
                 "image_url": "https://images.unsplash.com/photo-1591768575198-88dac53fbd0a?w=600",
                 "description": "둥글둥글 포근한 라운드 방석. 세탁기 사용 가능해요.",
                 "supports_shelter": True,
+                "seller_id": mongsil,
+                "stock": 50,
+                "donation_rate": 10,
             },
             {
                 "name": "유기농 연어 사료 1.2kg",
@@ -407,6 +425,9 @@ def seed_products() -> None:
                 "image_url": "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600",
                 "description": "소화가 편한 연어 단일 단백질 사료.",
                 "supports_shelter": False,
+                "seller_id": daeng,
+                "stock": 80,
+                "donation_rate": 5,
             },
             {
                 "name": "삑삑이 라텍스 장난감 세트",
@@ -415,6 +436,9 @@ def seed_products() -> None:
                 "image_url": "https://images.unsplash.com/photo-1535930891776-0c2dfb7fda1a?w=600",
                 "description": "물고 뜯어도 안전한 라텍스 장난감 3종 세트.",
                 "supports_shelter": False,
+                "seller_id": daeng,
+                "stock": 120,
+                "donation_rate": 5,
             },
             {
                 "name": "PawTrace 후원 굿즈 — 에코백",
@@ -423,6 +447,9 @@ def seed_products() -> None:
                 "image_url": "https://images.unsplash.com/photo-1597843786411-a7fa8ad44a95?w=600",
                 "description": "수익 전액이 협력 보호소 운영을 후원하는 에코백.",
                 "supports_shelter": True,
+                "seller_id": official,
+                "stock": 200,
+                "donation_rate": 30,
             },
             {
                 "name": "산책 필수 — 가슴줄 + 리드줄",
@@ -431,6 +458,9 @@ def seed_products() -> None:
                 "image_url": "https://images.unsplash.com/photo-1605897472359-85e4b94d685d?w=600",
                 "description": "목에 부담이 적은 H형 가슴줄과 리드줄 세트.",
                 "supports_shelter": False,
+                "seller_id": mongsil,
+                "stock": 60,
+                "donation_rate": 10,
             },
             {
                 "name": "구조견 후원 키트 (소)",
@@ -439,12 +469,15 @@ def seed_products() -> None:
                 "image_url": "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600",
                 "description": "보호소 강아지의 한 달 사료·간식을 후원하는 키트.",
                 "supports_shelter": True,
+                "seller_id": official,
+                "stock": 100,
+                "donation_rate": 50,
             },
         ]
         for it in items:
             db.add(Product(**it))
         db.commit()
-        print(f"[seed] 쇼핑몰 상품 {len(items)}개 생성.")
+        print(f"[seed] 쇼핑몰 판매자 {len(sellers)}명 · 상품 {len(items)}개 생성.")
     except Exception:
         db.rollback()
         raise

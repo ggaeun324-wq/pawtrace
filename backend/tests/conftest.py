@@ -14,6 +14,7 @@ from scripts.seed_db import (
     seed,
     seed_academy,
     seed_journey,
+    seed_products,
     seed_profiles,
     seed_relations,
     seed_users,
@@ -38,4 +39,5 @@ def _ensure_db():
     seed_academy()
     seed_profiles()
     seed_journey()
+    seed_products()
     yield

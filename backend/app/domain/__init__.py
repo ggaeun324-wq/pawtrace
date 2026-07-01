@@ -62,3 +62,30 @@ class ApplicationStatus(str, Enum):
     meeting = "meeting"
     matched = "matched"
     closed = "closed"
+
+
+class OrderStatus(str, Enum):
+    """쇼핑몰 주문 상태.
+
+    MVP 는 결제 게이트웨이(PG) 연동 없이 'paid' 로 즉시 확정합니다.
+    (실제 PG 연동은 확장 과제 — 상태 머신만 미리 확장 가능하게 둡니다.)
+    - pending:   주문 생성됨(결제 대기)
+    - paid:      결제 완료
+    - cancelled: 취소됨(재고 복원)
+    """
+    pending = "pending"
+    paid = "paid"
+    cancelled = "cancelled"
+
+
+class CouponStatus(str, Enum):
+    """쿠폰 상태.
+
+    쿠폰은 사람을 평가하지 않습니다. '꾸준한 반려생활 기록'을 응원하는 혜택입니다.
+    - issued:  발급됨(사용 가능)
+    - used:    사용 완료
+    - expired: 만료됨
+    """
+    issued = "issued"
+    used = "used"
+    expired = "expired"

@@ -74,6 +74,12 @@ def create_entry(db: Session, user: User, data: JourneyIn) -> JourneyOut:
     db.add(entry)
     db.commit()
     db.refresh(entry)
+    # 꾸준한 반려생활 기록을 응원하는 보상 쿠폰(기록당 1장, 멱등).
+    # 사람을 평가하지 않고 '기록 작성'이라는 행동만 보상합니다.
+    # 순환 임포트를 피하려고 함수 안에서 지연 임포트합니다.
+    from app.services import coupon_service
+
+    coupon_service.issue_journey_reward(db, user, entry)
     return _to_out(entry)
 
 

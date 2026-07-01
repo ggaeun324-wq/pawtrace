@@ -26,7 +26,9 @@ from app.db.session import Base
 from app.domain import (
     AdoptionStatus,
     ApplicationStatus,
+    CouponStatus,
     DataSource,
+    OrderStatus,
     PassportEventType,
     TransparencyLevel,
     UserRole,
@@ -324,4 +326,86 @@ class Product(Base):
     description: Mapped[str | None] = mapped_column(String(400))
     supports_shelter: Mapped[bool] = mapped_column(Boolean, default=False)  # 보호소 후원 상품
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # ── 커머스 확장 ──
+    seller_id: Mapped[int | None] = mapped_column(ForeignKey("sellers.id"), index=True)
+    stock: Mapped[int] = mapped_column(Integer, default=0, server_default="0")  # 재고 수량
+    # 판매액 중 보호소 후원으로 적립되는 비율(%) — 미션(수익 일부 후원) 구현
+    donation_rate: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    seller: Mapped["Seller | None"] = relationship()
+
+
+class Seller(Base):
+    """쇼핑몰 판매자 — 수제작가/소상공인.
+
+    매출 일부(products.donation_rate)가 보호소 후원으로 이어지는 구조를 지원합니다.
+    """
+
+    __tablename__ = "sellers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120))
+    contact: Mapped[str | None] = mapped_column(String(120))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class Coupon(Base):
+    """쿠폰 — 분기별 Family Journey 기록 작성 보상 등으로 발급.
+
+    사람을 평가하지 않고, '꾸준한 반려생활 기록'을 응원하는 혜택입니다.
+    journey_entry_id 로 '어떤 기록에 대한 보상인지'를 연결해 분기당 중복 발급을 막습니다.
+    """
+
+    __tablename__ = "coupons"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    code: Mapped[str] = mapped_column(String(40), unique=True, index=True)
+    amount: Mapped[int] = mapped_column(Integer)  # 할인 금액(원)
+    status: Mapped[CouponStatus] = mapped_column(default=CouponStatus.issued)
+    source: Mapped[str | None] = mapped_column(String(40))  # 예: journey_reward
+    journey_entry_id: Mapped[int | None] = mapped_column(
+        ForeignKey("journey_entries.id"), index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    used_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
+class Order(Base):
+    """주문 — 결제 트랜잭션(재고 차감 + 후원액 계산 + 쿠폰 사용)을 하나로 묶습니다.
+
+    MVP 는 PG 연동 없이 status='paid' 로 확정합니다. 재고/쿠폰 정합성이 핵심이라
+    부하테스트에서 '쓰기·동시성' 워크로드로 활용됩니다.
+    """
+
+    __tablename__ = "orders"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    status: Mapped[OrderStatus] = mapped_column(default=OrderStatus.paid)
+    total_amount: Mapped[int] = mapped_column(Integer, default=0)     # 최종 결제액(쿠폰 적용 후)
+    discount_amount: Mapped[int] = mapped_column(Integer, default=0)  # 쿠폰 할인액
+    donation_amount: Mapped[int] = mapped_column(Integer, default=0)  # 보호소 후원 적립액
+    coupon_id: Mapped[int | None] = mapped_column(ForeignKey("coupons.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    items: Mapped[list["OrderItem"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
+
+
+class OrderItem(Base):
+    """주문 상세 — 상품별 수량/단가 스냅샷(주문 시점 가격 보존)."""
+
+    __tablename__ = "order_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), index=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
+    quantity: Mapped[int] = mapped_column(Integer, default=1)
+    unit_price: Mapped[int] = mapped_column(Integer)  # 주문 시점 단가(원)
+
+    order: Mapped["Order"] = relationship(back_populates="items")
+    product: Mapped["Product"] = relationship()
