@@ -65,8 +65,8 @@ resource "aws_iam_role_policy" "task_app" {
       },
       {
         Effect   = "Allow"
-        Action   = ["bedrock:InvokeModel"] # P2 AI
-        Resource = ["*"]
+        Action   = ["bedrock:InvokeModel"] # P2 AI — 리전 내 파운데이션 모델로 범위 축소
+        Resource = ["arn:aws:bedrock:${var.aws_region}::foundation-model/*"]
       }
     ]
   })
@@ -92,7 +92,7 @@ resource "aws_ecs_task_definition" "api" {
         protocol      = "tcp"
       }]
       environment = [
-        { name = "REDIS_URL", value = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379/0" },
+        { name = "REDIS_URL", value = "${var.redis_transit_encryption ? "rediss" : "redis"}://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379/0" },
         { name = "AWS_S3_BUCKET", value = aws_s3_bucket.images.bucket }
       ]
       secrets = [

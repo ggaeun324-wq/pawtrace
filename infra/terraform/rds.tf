@@ -23,6 +23,13 @@ resource "aws_db_instance" "main" {
   skip_final_snapshot    = true # 포트폴리오/개발용. 운영에서는 false 권장
   publicly_accessible    = false
   storage_encrypted      = true
+
+  # ── 보안/복원력 강화 ──
+  deletion_protection          = var.db_deletion_protection # 실수 삭제 방지(운영 true)
+  backup_retention_period      = 7                          # 자동 백업 7일 보존 → PITR 가능
+  copy_tags_to_snapshot        = true
+  auto_minor_version_upgrade   = true # 마이너 보안 패치 자동 적용
+  performance_insights_enabled = true # 쿼리 성능 가시성(감사/튜닝)
 }
 
 # DB 접속 URL 을 Secrets Manager 에 저장 → ECS Task 가 런타임 주입

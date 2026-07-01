@@ -166,10 +166,23 @@ docker compose up --build
 
 ## 🔐 보안 (Security)
 
-- **OIDC 키리스 인증** — 장기 액세스키를 저장하지 않음
-- **역할 분리(최소 권한)** — 앱 배포용 / 인프라 관리용 IAM 역할 분리
+**애플리케이션 계층 방어(엣지)**
+- **HTTPS/TLS 종단** — ACM 인증서 기반 ALB 443 리스너 + HTTP→HTTPS 301 리다이렉트 (TLS1.2/1.3 정책)
+- **AWS WAF v2** — 관리형 규칙(CommonRuleSet·KnownBadInputs, SQLi/XSS 등) + IP rate-limit(무차별 로그인 완화)
+- **ALB 하드닝** — `drop_invalid_header_fields`로 헤더 인젝션/요청 스머글링 완화
+
+**네트워크 격리**
+- **DB/캐시 private 서브넷** + 보안그룹 체인(ALB→ECS→RDS/Redis) 최소 권한
+- **VPC 엔드포인트** — Secrets Manager·ECR·CloudWatch Logs(Interface) + S3(Gateway)로 AWS 접근을 NAT(공용망) 대신 VPC 내부로 유지
+
+**데이터 보호**
 - **Secrets Manager** — DB 접속정보를 런타임에 주입 (코드/이미지에 미포함)
-- **네트워크 격리** — DB/캐시는 private 서브넷, 보안그룹 체인으로 접근 제한
+- **저장 암호화** — RDS storage 암호화, S3 SSE(AES256) + 버저닝 + `aws:SecureTransport` 거부(TLS 강제)
+- **전송 암호화** — Redis TLS(rediss://), RDS 자동 백업 7일 보존(PITR)
+
+**권한/공급망**
+- **OIDC 키리스 인증** — 장기 액세스키를 저장하지 않음
+- **역할 분리(최소 권한)** — 배포용/인프라용 IAM 역할 분리 + Bedrock 권한을 리전 파운데이션 모델로 범위 축소
 - **이미지 취약점 스캔** — Trivy (HIGH/CRITICAL 발견 시 배포 차단)
 - **시크릿 누출 방지** — GitGuardian, pre-commit, `.gitignore`
 - **공급망 가시성** — Syft로 SBOM 생성
@@ -214,7 +227,8 @@ SRE/Cloud 역량 강화에 초점을 둔 로드맵:
 - 📊 **관측성** — CloudWatch 대시보드 + 알람 + SLO/SLI + 분산 트레이싱(OTel→X-Ray)
 - 📈 **오토스케일링** + k6 부하테스트로 용량 검증
 - 🔵 **Blue/Green 무중단 배포**(CodeDeploy) — *현재는 롤링 업데이트 + 자동 롤백 적용, 향후 확장 옵션*
-- 🔒 **HTTPS(ACM)** + WAF
+- 🛡️ **위협 탐지·거버넌스** — GuardDuty · CloudTrail · AWS Config · Security Hub (Tier 3, 비용 토글)
+- 🔑 **Secrets 자동 로테이션** + KMS 고객관리키(CMK)
 - 🧩 **Terraform 모듈화** + Infracost(PR 비용 코멘트) + multi-env(dev/stg/prod)
 
 ---

@@ -23,3 +23,13 @@ output "ecs_cluster" {
 output "ecs_service" {
   value = aws_ecs_service.api.name
 }
+
+output "waf_web_acl_arn" {
+  description = "ALB 에 연결된 WAF Web ACL ARN"
+  value       = aws_wafv2_web_acl.alb.arn
+}
+
+output "https_enabled" {
+  description = "ACM 인증서 설정 시 ALB HTTPS(443) 리스너 활성 여부"
+  value       = var.acm_certificate_arn != ""
+}
