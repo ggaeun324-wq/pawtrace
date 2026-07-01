@@ -11,9 +11,9 @@
 
 <br/>
 
-![PawTrace 홈 화면 동작 흐름](docs/home-demo.gif)
+![PawTrace 전체 탭 동작 흐름](docs/home-demo.gif)
 
-*공고 마감이 가까운 친구들 → 대한민국 보호소 지도 → 보호소 지도 탭 → 해피ing 까지의 실제 동작 흐름*
+*오늘의 친구 → 보호소 지도 → 해피ing → 입양 스토리(분기 타임라인) → 쇼핑몰 장바구니·결제 → 반려생활 기록 까지 실제 동작 흐름*
 
 </div>
 
@@ -195,6 +195,121 @@ docker compose up --build
 - **Container Insights** — ECS 리소스 메트릭
 - **ALB Health Check** — `/api/v1/health` 기반 헬스 판정
 - 🟡 대시보드·알람·SLO·분산 트레이싱은 ROADMAP 에서 강화 중
+
+---
+
+## 🧭 SRE 시나리오 — 신뢰성을 "설계"로 증명하기
+
+> PawTrace는 기능 구현에서 멈추지 않고, **"장애가 나도 사용자 경험을 지키는 구조"** 를 목표로 설계했습니다.
+> 아래는 이 서비스를 **SRE 관점**으로 운영·검증하는 시나리오입니다. (직접 재현 가능한 형태로 정리)
+
+### 1) 왜 이 서비스가 SRE 연습에 좋은가 — 상반된 두 워크로드
+
+PawTrace에는 성격이 정반대인 트래픽 두 개가 공존합니다. 하나의 서비스에서 **읽기 최적화**와 **쓰기 정합성**을 동시에 다뤄야 하죠.
+
+| 워크로드 | 대표 API | 특징 | SRE 관심사 |
+|---|---|---|---|
+| 🔴 **읽기 폭주** | `GET /dogs/urgent` (오늘의 공고) | 캐시 가능, 트래픽 급증에 민감 | **Redis 캐시 적중률**, p95 지연, 캐시 스탬피드 |
+| 🟢 **쓰기 정합성** | `POST /shop/cart/checkout` (결제) | 재고 차감·후원·쿠폰을 **1 트랜잭션**, 동시성 경합 | **행 잠금(FOR UPDATE)**, 초과판매 0건, 롤백 안전성 |
+
+> 핵심 메시지: **"읽기는 캐시로 지키고, 쓰기는 트랜잭션·행잠금으로 지킨다."** — 두 전략을 한 서비스에서 실증합니다.
+
+### 2) SLO 정의 (측정 가능한 신뢰성 목표)
+
+| SLI (무엇을 잰다) | SLO (목표) | 근거 |
+|---|---|---|
+| 가용성: `2xx/3xx` 응답 비율 | **99.5%** (월 기준) | 오류 예산 ≈ 3.6h/월 → 배포·실험 여유 |
+| 읽기 지연: `/dogs/urgent` p95 | **< 200ms** | 캐시 HIT 기준 체감 즉시성 |
+| 쓰기 정합성: 초과판매(oversell) | **0건** | 재고보다 많이 팔리면 신뢰 붕괴 |
+| 결제 성공률(재고 있을 때) | **> 99%** | 경합으로 인한 부당 실패 방지 |
+
+**오류 예산(Error Budget)** 개념 적용: 99.5% 목표 → 남은 0.5%를 "배포·부하실험에 쓸 수 있는 예산"으로 관리. 예산 소진 시 배포 동결(freeze) → 안정화 우선.
+
+### 3) 부하 테스트 시나리오 (k6) — 직접 컨트롤
+
+> 🧑‍💻 부하 테스트는 **엔지니어가 직접 실행·관찰**하도록 설계했습니다. 아래는 그대로 돌릴 수 있는 시나리오 골격입니다.
+> 로컬 Docker 스택 대상이면 **비용 $0**(AWS 불필요). 배포본 대상 테스트만 과금됩니다.
+
+```js
+// k6: 두 워크로드를 동시에 재현 (읽기 캐시 vs 쓰기 결제)
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+export const options = {
+  scenarios: {
+    read_urgent: {            // 🔴 읽기 폭주 — 캐시 효과 측정
+      executor: 'ramping-vus',
+      exec: 'readUrgent',
+      startVUs: 0,
+      stages: [
+        { duration: '30s', target: 50 },   // 워밍업(캐시 채우기)
+        { duration: '1m',  target: 300 },  // 급증(스파이크)
+        { duration: '30s', target: 0 },
+      ],
+    },
+    write_checkout: {         // 🟢 쓰기 정합성 — 동시 결제 경합
+      executor: 'constant-vus',
+      exec: 'checkout',
+      vus: 20, duration: '2m',
+    },
+  },
+  thresholds: {               // SLO를 '자동 판정'으로 강제 (실패 시 exit≠0)
+    'http_req_duration{scenario:read_urgent}': ['p(95)<200'],
+    'http_req_failed{scenario:write_checkout}': ['rate<0.01'],
+  },
+};
+
+const BASE = 'http://localhost:8000/api/v1';
+
+export function readUrgent() {
+  const res = http.get(`${BASE}/dogs/urgent`);
+  check(res, { 'urgent 200': (r) => r.status === 200 });
+  sleep(0.5);
+}
+
+export function checkout() {
+  // (사전: 로그인 토큰 발급 → 장바구니 담기) 후 결제 호출
+  // 재고보다 많은 동시 결제를 유도해 '초과판매 0건'을 검증
+  // ... POST /shop/cart/checkout with Authorization ...
+}
+```
+
+**관찰 포인트(=이 실험으로 증명하려는 것):**
+- 캐시 워밍업 전/후 `/dogs/urgent`의 **p95 지연 급감** → "캐시가 읽기 SLO를 지킨다"
+- 동시 결제 20 VU에서도 **초과판매 0건 / 재고 정확히 감소** → "행 잠금이 쓰기 정합성을 지킨다"
+- 스파이크 구간에서 **ECS Service Auto Scaling**이 태스크를 늘려 오류율을 흡수하는지
+
+### 4) 관측성 스택 (Grafana) — 숫자로 말하기
+
+```
+k6  ──(metrics)──▶  Prometheus/InfluxDB  ──▶  Grafana 대시보드
+앱  ──(logs)─────▶  CloudWatch Logs
+ECS ──(metrics)──▶  Container Insights
+```
+
+- **Grafana 대시보드 4개 골든 시그널**: 지연(Latency)·트래픽(Traffic)·오류(Errors)·포화(Saturation)
+- **k6 → Grafana** 연동으로 부하 그래프와 시스템 메트릭을 **한 화면에서 상관관계** 확인
+- 캐시 적중률·결제 실패율·태스크 수를 함께 띄워 **"원인→결과"** 를 시각적으로 설명
+
+### 5) 장애 주입 & 런북 (실전 대비)
+
+| 시나리오 | 주입 방법 | 기대 동작 (설계된 방어) |
+|---|---|---|
+| **Redis 다운** | `docker stop` 캐시 컨테이너 | 캐시 **fail-open** → DB로 폴백, 서비스 지속(지연만 증가) |
+| **DB 커넥션 고갈** | 동시 결제 폭주 | 행 잠금 대기 → 초과판매 없이 순차 처리, 타임아웃은 5xx로 정직하게 노출 |
+| **배포 실패** | 깨진 이미지 배포 | ECS **서킷브레이커 자동 롤백** → 직전 정상 버전 복구 |
+| **트래픽 스파이크** | k6 스파이크 스테이지 | Auto Scaling 태스크 증설 → 오류 예산 내 흡수 |
+
+> 각 시나리오는 "장애가 **어떻게** 사용자 경험을 덜 해치도록 설계됐는가"를 설명하기 위한 것입니다.
+> (예: Redis가 죽어도 홈 화면은 계속 뜬다 — 이게 **fail-open** 설계의 가치)
+
+### 6) Kubernetes/EKS 확장 트랙 (정직한 경계)
+
+- **Karpenter**(노드 오토스케일러)는 **EKS(쿠버네티스) 전용**입니다. 현재의 **ECS Fargate에서는 동작하지 않습니다.**
+- 그래서 로드맵을 **정직하게 두 트랙**으로 나눕니다:
+  - ✅ **ECS 트랙(현재)**: ECS Service Auto Scaling + 롤링 배포 + 서킷브레이커 롤백 — 지금 재현 가능
+  - 🧭 **EKS 트랙(확장)**: 동일 컨테이너를 EKS로 이식 → **Karpenter 노드 오토스케일** + HPA + Blue/Green — JD 요구사항(k6·Grafana·Karpenter) 완전 충족
+- 이 구분 자체가 **"플랫폼 특성을 이해하고 도구를 선택한다"** 는 SRE 역량의 표현입니다.
 
 ---
 
