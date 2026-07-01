@@ -69,3 +69,39 @@ variable "db_deletion_protection" {
   type    = bool
   default = false
 }
+
+# ── 앱 런타임 설정/시크릿 주입용 변수 ───────────────────────────────
+# 민감값(빈 값이면 앱은 stub 모드로 안전 동작). 배포 시 TF_VAR_* 또는 tfvars 로 주입.
+variable "kakao_rest_api_key" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "public_data_api_key" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+
+variable "admin_email" {
+  type    = string
+  default = "admin@pawtrace.dev"
+}
+
+variable "admin_password" {
+  type      = string
+  default   = "admin1234" # 데모 기본값. 운영은 반드시 tfvars/TF_VAR 로 교체.
+  sensitive = true
+}
+
+# 비민감 설정
+variable "bedrock_model_id" {
+  type    = string
+  default = "" # 예: "anthropic.claude-3-haiku-20240307-v1:0". 빈 값이면 AI stub.
+}
+
+variable "cors_origins" {
+  type    = list(string)
+  default = ["http://localhost:3000", "http://localhost:8777"]
+}

@@ -39,9 +39,12 @@ resource "aws_iam_role_policy" "execution_secrets" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = ["secretsmanager:GetSecretValue"]
-      Resource = [aws_secretsmanager_secret.db_url.arn]
+      Effect = "Allow"
+      Action = ["secretsmanager:GetSecretValue"]
+      Resource = [
+        aws_secretsmanager_secret.db_url.arn,
+        aws_secretsmanager_secret.app.arn
+      ]
     }]
   })
 }
@@ -93,10 +96,19 @@ resource "aws_ecs_task_definition" "api" {
       }]
       environment = [
         { name = "REDIS_URL", value = "${var.redis_transit_encryption ? "rediss" : "redis"}://${aws_elasticache_cluster.redis.cache_nodes[0].address}:6379/0" },
-        { name = "AWS_S3_BUCKET", value = aws_s3_bucket.images.bucket }
+        { name = "AWS_S3_BUCKET", value = aws_s3_bucket.images.bucket },
+        { name = "BEDROCK_MODEL_ID", value = var.bedrock_model_id },
+        { name = "ADMIN_EMAIL", value = var.admin_email },
+        # CORS_ORIGINS 는 list[str] → pydantic-settings 는 JSON 으로 파싱하므로 jsonencode
+        { name = "CORS_ORIGINS", value = jsonencode(var.cors_origins) }
       ]
       secrets = [
-        { name = "DATABASE_URL", valueFrom = aws_secretsmanager_secret.db_url.arn }
+        { name = "DATABASE_URL", valueFrom = aws_secretsmanager_secret.db_url.arn },
+        # 아래는 app-secrets(JSON) 에서 개별 키만 주입: "<arn>:<jsonKey>::"
+        { name = "JWT_SECRET", valueFrom = "${aws_secretsmanager_secret.app.arn}:JWT_SECRET::" },
+        { name = "KAKAO_REST_API_KEY", valueFrom = "${aws_secretsmanager_secret.app.arn}:KAKAO_REST_API_KEY::" },
+        { name = "PUBLIC_DATA_API_KEY", valueFrom = "${aws_secretsmanager_secret.app.arn}:PUBLIC_DATA_API_KEY::" },
+        { name = "ADMIN_PASSWORD", valueFrom = "${aws_secretsmanager_secret.app.arn}:ADMIN_PASSWORD::" }
       ]
       logConfiguration = {
         logDriver = "awslogs"
