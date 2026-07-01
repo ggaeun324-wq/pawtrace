@@ -6,8 +6,8 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.domain import AdoptionStatus
-from app.models import Dog, Shelter
+from app.domain import AdoptionStatus, ApplicationStatus
+from app.models import AdoptionApplication, Dog, Shelter
 
 
 def count_available_dogs(db: Session, shelter_id: int) -> int:
@@ -16,6 +16,50 @@ def count_available_dogs(db: Session, shelter_id: int) -> int:
         .select_from(Dog)
         .where(Dog.shelter_id == shelter_id, Dog.adoption_status == AdoptionStatus.available)
     ) or 0
+
+
+def shelter_stats(db: Session, shelter_id: int) -> dict:
+    """직원 마이페이지용 운영 통계(강아지 총수/입양가능/입양완료/진행중 신청자)."""
+    dog_count = db.scalar(
+        select(func.count()).select_from(Dog).where(Dog.shelter_id == shelter_id)
+    ) or 0
+    available_count = count_available_dogs(db, shelter_id)
+    adopted_count = db.scalar(
+        select(func.count())
+        .select_from(Dog)
+        .where(Dog.shelter_id == shelter_id, Dog.adoption_status == AdoptionStatus.adopted)
+    ) or 0
+    # 진행 중 신청자: 종료(closed)/매칭완료(matched)를 제외한 신청 건수.
+    pending_applicants = db.scalar(
+        select(func.count())
+        .select_from(AdoptionApplication)
+        .join(Dog, AdoptionApplication.dog_id == Dog.id)
+        .where(
+            Dog.shelter_id == shelter_id,
+            AdoptionApplication.status.notin_(
+                [ApplicationStatus.closed, ApplicationStatus.matched]
+            ),
+        )
+    ) or 0
+    return {
+        "dog_count": int(dog_count),
+        "available_count": int(available_count),
+        "adopted_count": int(adopted_count),
+        "pending_applicants": int(pending_applicants),
+    }
+
+
+def update_shelter(db: Session, shelter_id: int, fields: dict) -> Shelter | None:
+    """보호소 정보를 부분 수정하고 저장합니다(None 값은 건너뜀)."""
+    shelter = db.get(Shelter, shelter_id)
+    if shelter is None:
+        return None
+    for key, value in fields.items():
+        if value is not None and hasattr(shelter, key):
+            setattr(shelter, key, value)
+    db.commit()
+    db.refresh(shelter)
+    return shelter
 
 
 def list_shelters(db: Session, region: str | None = None) -> list[dict]:

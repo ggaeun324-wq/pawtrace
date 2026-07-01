@@ -9,7 +9,7 @@ AI 초안을 그대로 자동 게시하지 않고, 반드시 직원이 저장 �
 """
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.core.security import require_role
@@ -18,11 +18,49 @@ from app.domain import UserRole
 from app.models import User
 from app.schemas.applicant import ApplicantSummary
 from app.schemas.shelter_ai import DogCreateIn, DogDraft, DogOut
-from app.services import applicant_service, shelter_ai_service
+from app.schemas.staff import ShelterEditIn, StaffShelter, StaffSummary
+from app.services import applicant_service, shelter_ai_service, staff_service
 
 router = APIRouter()
 
 StaffUser = Annotated[User, Depends(require_role(UserRole.shelter_staff, UserRole.admin))]
+
+
+@router.get("/me/summary", response_model=StaffSummary)
+def my_summary(
+    staff: StaffUser,
+    db: Annotated[Session, Depends(get_db)],
+    shelter_id: int | None = None,
+):
+    """직원 마이페이지 대시보드: 계정 + 담당 보호소 + 운영 통계."""
+    return staff_service.build_summary(db, staff, shelter_id)
+
+
+@router.get("/me", response_model=StaffShelter)
+def my_shelter(
+    staff: StaffUser,
+    db: Annotated[Session, Depends(get_db)],
+    shelter_id: int | None = None,
+):
+    """담당 보호소의 수정 대상 정보를 조회합니다."""
+    shelter = staff_service.get_my_shelter(db, staff, shelter_id)
+    if shelter is None:
+        raise HTTPException(status_code=404, detail="담당 보호소를 찾을 수 없습니다.")
+    return shelter
+
+
+@router.put("/me", response_model=StaffShelter)
+def update_shelter(
+    data: ShelterEditIn,
+    staff: StaffUser,
+    db: Annotated[Session, Depends(get_db)],
+    shelter_id: int | None = None,
+):
+    """직원이 수정한 보호소 정보를 DB 에 저장합니다."""
+    shelter = staff_service.update_my_shelter(db, staff, data, shelter_id)
+    if shelter is None:
+        raise HTTPException(status_code=404, detail="담당 보호소를 찾을 수 없습니다.")
+    return shelter
 
 
 @router.post("/dogs/ai-draft", response_model=DogDraft)
